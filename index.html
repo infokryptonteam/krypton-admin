@@ -1928,6 +1928,7 @@ body{background:#f4f6f5!important;overflow-x:hidden;}
 
     form.appendChild(field("origin", ALLOWED_ORIGIN));
     form.appendChild(field("action", action));
+    form.appendChild(field("requestId", requestId));
     form.appendChild(field("payload", JSON.stringify(payload)));
 
     document.body.appendChild(form);
