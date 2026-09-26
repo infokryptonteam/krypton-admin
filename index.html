@@ -1,173 +1,2372 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>KRYPTON Manage</title>
+  <base target="_self">
+
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0">
+
+  <title>KRYPTON Admin</title>
 
   <style>
+
     * {
       box-sizing: border-box;
+      margin: 0;
+      padding: 0;
     }
 
     body {
-      margin: 0;
+      font-family:
+        Inter,
+        Arial,
+        sans-serif;
+
+      background: #f6f7f9;
+      color: #171717;
+    }
+
+    button,
+    input,
+    select,
+    textarea {
+      font-family: inherit;
+    }
+
+
+    /* =========================
+       LOGIN
+    ========================= */
+
+    #loginScreen {
+
       min-height: 100vh;
-      font-family: Arial, sans-serif;
-      background: #f5f7f6;
+
       display: flex;
+
       align-items: center;
+
       justify-content: center;
+
+      padding: 20px;
+
+      background: #f6f7f9;
     }
 
-    .box {
-      width: min(420px, 92%);
+    .loginBox {
+
+      width: 100%;
+      max-width: 400px;
+
       background: white;
-      padding: 35px;
+
+      border: 1px solid #e5e7eb;
+
       border-radius: 18px;
-      box-shadow: 0 15px 45px rgba(0,0,0,.10);
-      text-align: center;
+
+      padding: 38px;
+
+      box-shadow:
+        0 15px 40px
+        rgba(0,0,0,.07);
     }
 
-    .logo {
-      font-size: 30px;
+    .brand {
+
+      text-align: center;
+
+      margin-bottom: 30px;
+    }
+
+    .brandLogo {
+
+      width: 54px;
+      height: 54px;
+
+      background: #111;
+
+      color: #b7ff00;
+
+      border-radius: 14px;
+
+      display: flex;
+
+      align-items: center;
+
+      justify-content: center;
+
+      margin: auto;
+
+      font-size: 25px;
+
       font-weight: 800;
+    }
+
+    .brand h1 {
+
+      margin-top: 14px;
+
+      font-size: 25px;
+    }
+
+    .brand p {
+
+      color: #777;
+
+      margin-top: 5px;
+
+      font-size: 14px;
+    }
+
+    .formGroup {
+
+      margin-bottom: 18px;
+    }
+
+    .formGroup label {
+
+      display: block;
+
+      font-size: 13px;
+
+      font-weight: 600;
+
+      margin-bottom: 7px;
+    }
+
+    input,
+    select,
+    textarea {
+
+      width: 100%;
+
+      padding: 12px 13px;
+
+      border: 1px solid #dfe2e6;
+
+      border-radius: 9px;
+
+      outline: none;
+
+      background: white;
+
+      font-size: 14px;
+    }
+
+    input:focus,
+    select:focus,
+    textarea:focus {
+
+      border-color: #111;
+
+    }
+
+    textarea {
+
+      min-height: 100px;
+
+      resize: vertical;
+    }
+
+    .primaryBtn {
+
+      width: 100%;
+
+      padding: 13px;
+
+      background: #111;
+
+      color: white;
+
+      border: none;
+
+      border-radius: 9px;
+
+      cursor: pointer;
+
+      font-weight: 600;
+
+      transition: .2s;
+    }
+
+    .primaryBtn:hover {
+
+      background: #292929;
+
+    }
+
+    #loginError {
+
+      color: #d33;
+
+      font-size: 13px;
+
+      margin-top: 12px;
+
+      text-align: center;
+
+      display: none;
+    }
+
+
+    /* =========================
+       APP
+    ========================= */
+
+    #app {
+
+      display: none;
+
+      min-height: 100vh;
+    }
+
+    .sidebar {
+
+      width: 240px;
+
+      background: #111;
+
+      color: white;
+
+      position: fixed;
+
+      top: 0;
+      left: 0;
+      bottom: 0;
+
+      padding: 22px 14px;
+
+      z-index: 20;
+    }
+
+    .sideBrand {
+
+      display: flex;
+
+      align-items: center;
+
+      gap: 10px;
+
+      padding: 8px 10px 25px;
+
+      font-size: 20px;
+
+      font-weight: 800;
+    }
+
+    .sideBrand span {
+
+      color: #b7ff00;
+    }
+
+    .navItem {
+
+      padding: 11px 13px;
+
+      border-radius: 8px;
+
+      cursor: pointer;
+
+      margin-bottom: 4px;
+
+      color: #cfcfcf;
+
+      font-size: 14px;
+
+      transition: .2s;
+    }
+
+    .navItem:hover {
+
+      background: #1f1f1f;
+
+      color: white;
+    }
+
+    .navItem.active {
+
+      background: #b7ff00;
+
+      color: #111;
+
+      font-weight: 700;
+    }
+
+    .logout {
+
+      position: absolute;
+
+      bottom: 20px;
+
+      left: 14px;
+      right: 14px;
+
+      padding: 11px;
+
+      border: 1px solid #333;
+
+      border-radius: 8px;
+
+      color: #ccc;
+
+      cursor: pointer;
+
+      text-align: center;
+
+      font-size: 14px;
+    }
+
+    .logout:hover {
+
+      background: #1e1e1e;
+    }
+
+
+    /* =========================
+       MAIN
+    ========================= */
+
+    .main {
+
+      margin-left: 240px;
+
+      min-height: 100vh;
+    }
+
+    .topbar {
+
+      height: 70px;
+
+      background: white;
+
+      border-bottom: 1px solid #e8e8e8;
+
+      display: flex;
+
+      align-items: center;
+
+      justify-content: space-between;
+
+      padding: 0 30px;
+
+      position: sticky;
+
+      top: 0;
+
+      z-index: 10;
+    }
+
+    .pageTitle {
+
+      font-size: 20px;
+
+      font-weight: 700;
+    }
+
+    .userBadge {
+
+      font-size: 13px;
+
+      color: #666;
+    }
+
+    .content {
+
+      padding: 28px;
+    }
+
+
+    /* =========================
+       DASHBOARD
+    ========================= */
+
+    .cards {
+
+      display: grid;
+
+      grid-template-columns:
+        repeat(4, 1fr);
+
+      gap: 16px;
+
+      margin-bottom: 25px;
+    }
+
+    .card {
+
+      background: white;
+
+      border: 1px solid #e7e7e7;
+
+      border-radius: 13px;
+
+      padding: 20px;
+    }
+
+    .cardLabel {
+
+      color: #777;
+
+      font-size: 13px;
+
       margin-bottom: 10px;
     }
 
-    .logo span {
-      color: #9cff00;
+    .cardValue {
+
+      font-size: 28px;
+
+      font-weight: 750;
     }
 
-    button {
-      width: 100%;
-      padding: 13px;
-      border: 0;
-      border-radius: 10px;
+
+    /* =========================
+       SECTION
+    ========================= */
+
+    .section {
+
+      background: white;
+
+      border: 1px solid #e7e7e7;
+
+      border-radius: 13px;
+
+      margin-bottom: 20px;
+
+      overflow: hidden;
+    }
+
+    .sectionHeader {
+
+      display: flex;
+
+      align-items: center;
+
+      justify-content: space-between;
+
+      padding: 18px 20px;
+
+      border-bottom: 1px solid #eee;
+    }
+
+    .sectionHeader h2 {
+
+      font-size: 16px;
+    }
+
+    .addBtn {
+
       background: #111;
+
       color: white;
-      font-weight: 700;
+
+      border: none;
+
+      border-radius: 8px;
+
+      padding: 9px 13px;
+
       cursor: pointer;
-      margin-top: 20px;
+
+      font-size: 13px;
+
+      font-weight: 600;
     }
 
-    #status {
-      margin-top: 18px;
-      font-size: 14px;
-      color: #666;
-      word-break: break-word;
+    .tableWrap {
+
+      overflow-x: auto;
     }
-  </style>
+
+    table {
+
+      width: 100%;
+
+      border-collapse: collapse;
+
+      font-size: 13px;
+    }
+
+    th {
+
+      text-align: left;
+
+      background: #fafafa;
+
+      padding: 12px 16px;
+
+      color: #666;
+
+      font-weight: 600;
+
+      border-bottom: 1px solid #eee;
+    }
+
+    td {
+
+      padding: 13px 16px;
+
+      border-bottom: 1px solid #f0f0f0;
+    }
+
+    tr:last-child td {
+
+      border-bottom: none;
+    }
+
+
+    /* =========================
+       MODAL
+    ========================= */
+
+    .modal {
+
+      position: fixed;
+
+      inset: 0;
+
+      background:
+        rgba(0,0,0,.45);
+
+      display: none;
+
+      align-items: center;
+
+      justify-content: center;
+
+      padding: 20px;
+
+      z-index: 100;
+    }
+
+    .modalBox {
+
+      background: white;
+
+      width: 100%;
+
+      max-width: 600px;
+
+      max-height: 90vh;
+
+      overflow-y: auto;
+
+      border-radius: 15px;
+
+      padding: 25px;
+    }
+
+    .modalHeader {
+
+      display: flex;
+
+      justify-content: space-between;
+
+      align-items: center;
+
+      margin-bottom: 22px;
+    }
+
+    .modalHeader h2 {
+
+      font-size: 18px;
+    }
+
+    .closeBtn {
+
+      border: none;
+
+      background: #f1f1f1;
+
+      width: 32px;
+
+      height: 32px;
+
+      border-radius: 50%;
+
+      cursor: pointer;
+    }
+
+    .formGrid {
+
+      display: grid;
+
+      grid-template-columns:
+        repeat(2, 1fr);
+
+      gap: 15px;
+    }
+
+    .full {
+
+      grid-column:
+        1 / -1;
+    }
+
+    .modalActions {
+
+      margin-top: 22px;
+
+      display: flex;
+
+      justify-content: flex-end;
+
+      gap: 10px;
+    }
+
+    .cancelBtn {
+
+      border: 1px solid #ddd;
+
+      background: white;
+
+      padding: 10px 16px;
+
+      border-radius: 8px;
+
+      cursor: pointer;
+    }
+
+    .saveBtn {
+
+      border: none;
+
+      background: #111;
+
+      color: white;
+
+      padding: 10px 18px;
+
+      border-radius: 8px;
+
+      cursor: pointer;
+
+      font-weight: 600;
+    }
+
+
+    /* =========================
+       MOBILE
+    ========================= */
+
+    .mobileMenu {
+
+      display: none;
+
+      border: none;
+
+      background: none;
+
+      font-size: 23px;
+
+      cursor: pointer;
+    }
+
+    @media(max-width:900px) {
+
+      .cards {
+
+        grid-template-columns:
+          repeat(2,1fr);
+      }
+
+    }
+
+    @media(max-width:700px) {
+
+      .sidebar {
+
+        transform:
+          translateX(-100%);
+
+        transition: .25s;
+      }
+
+      .sidebar.open {
+
+        transform:
+          translateX(0);
+      }
+
+      .main {
+
+        margin-left: 0;
+      }
+
+      .mobileMenu {
+
+        display: block;
+      }
+
+      .content {
+
+        padding: 18px;
+      }
+
+      .topbar {
+
+        padding: 0 18px;
+      }
+
+      .cards {
+
+        grid-template-columns:
+          1fr 1fr;
+
+        gap: 10px;
+      }
+
+      .card {
+
+        padding: 15px;
+      }
+
+      .cardValue {
+
+        font-size: 23px;
+      }
+
+      .formGrid {
+
+        grid-template-columns: 1fr;
+      }
+
+      .full {
+
+        grid-column: auto;
+      }
+
+    }
+
+    @media(max-width:450px) {
+
+      .cards {
+
+        grid-template-columns: 1fr;
+      }
+
+      .loginBox {
+
+        padding: 28px 22px;
+      }
+
+    }
+
+
+
+    /* =========================================
+       KRYPTON PREMIUM SaaS UI OVERRIDES
+    ========================================= */
+    :root{
+      --k-green:#b7ff00;
+      --k-ink:#111315;
+      --k-muted:#70757d;
+      --k-border:#e8eaed;
+      --k-bg:#f5f6f8;
+      --k-card:#ffffff;
+      --k-shadow:0 10px 30px rgba(17,19,21,.06);
+    }
+
+    body{background:var(--k-bg);color:var(--k-ink);}
+    .sidebar{background:#111315;border-right:1px solid #202328;box-shadow:8px 0 30px rgba(0,0,0,.04);}
+    .sideBrand{letter-spacing:.8px;font-weight:800;padding:24px 22px;}
+    .sideBrand span{background:var(--k-green);color:#111315;box-shadow:0 0 0 5px rgba(183,255,0,.08);}
+    .navItem{margin:4px 12px;padding:12px 14px;border-radius:10px;color:#aeb3bb;font-weight:600;transition:.18s ease;}
+    .navItem:hover{background:#1b1e22;color:#fff;transform:none;}
+    .navItem.active{background:var(--k-green);color:#101214;box-shadow:0 8px 22px rgba(183,255,0,.14);}
+    .logout{margin:10px 12px;padding:12px 14px;border-radius:10px;color:#aeb3bb;}
+    .logout:hover{background:#1b1e22;color:#fff;}
+    .main{background:var(--k-bg);}
+    .topbar{height:76px;background:rgba(255,255,255,.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--k-border);padding:0 30px;position:sticky;top:0;z-index:10;}
+    .pageTitle{font-size:20px;font-weight:800;letter-spacing:-.3px;}
+    .userBadge{background:#f1f3f5;border:1px solid var(--k-border);font-weight:700;color:#34383d;padding:9px 13px;border-radius:10px;}
+    .content{padding:30px;max-width:1500px;margin:0 auto;width:100%;}
+
+    .cards{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:16px;margin-bottom:22px;}
+    .card{background:var(--k-card);border:1px solid var(--k-border);border-radius:16px;padding:21px;box-shadow:var(--k-shadow);position:relative;overflow:hidden;}
+    .card:after{content:"";position:absolute;right:-28px;top:-28px;width:88px;height:88px;border-radius:50%;background:rgba(183,255,0,.11);}
+    .cardLabel{font-size:12px;text-transform:uppercase;letter-spacing:.7px;color:var(--k-muted);font-weight:800;}
+    .cardValue{font-size:30px;font-weight:850;letter-spacing:-1px;margin-top:10px;position:relative;z-index:1;}
+
+    .dashboardHero{background:#111315;color:#fff;border-radius:18px;padding:28px 30px;margin-bottom:22px;display:flex;align-items:center;justify-content:space-between;gap:20px;box-shadow:0 14px 35px rgba(17,19,21,.12);position:relative;overflow:hidden;}
+    .dashboardHero:after{content:"";position:absolute;width:220px;height:220px;border-radius:50%;right:-70px;top:-110px;background:rgba(183,255,0,.15);}
+    .dashboardHero h1{font-size:27px;letter-spacing:-.7px;margin-bottom:7px;position:relative;z-index:1;}
+    .dashboardHero p{color:#aeb3bb;font-size:14px;position:relative;z-index:1;}
+    .heroMark{width:52px;height:52px;border-radius:14px;background:var(--k-green);color:#111315;display:flex;align-items:center;justify-content:center;font-size:23px;font-weight:900;position:relative;z-index:1;flex:none;}
+
+    .quickGrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:22px;}
+    .quickAction{border:1px solid var(--k-border);background:#fff;border-radius:13px;padding:15px 16px;text-align:left;font-weight:750;color:#25292d;cursor:pointer;box-shadow:0 5px 18px rgba(17,19,21,.04);transition:.18s ease;}
+    .quickAction:hover{border-color:#cfd3d7;transform:translateY(-1px);box-shadow:0 10px 24px rgba(17,19,21,.08);}
+    .quickAction span{display:block;font-size:12px;color:var(--k-muted);font-weight:600;margin-top:4px;}
+
+    .dashboardGrid{display:grid;grid-template-columns:1.25fr .75fr;gap:18px;}
+    .section{background:#fff;border:1px solid var(--k-border);border-radius:16px;box-shadow:var(--k-shadow);overflow:hidden;margin-bottom:18px;}
+    .sectionHeader{padding:18px 20px;border-bottom:1px solid var(--k-border);}
+    .sectionHeader h2{font-size:15px;font-weight:800;}
+    .tableWrap{box-shadow:none;border:0;border-radius:0;overflow:auto;}
+    table{width:100%;border-collapse:collapse;}
+    th{background:#fafbfc;color:#7b8088;font-size:11px;text-transform:uppercase;letter-spacing:.6px;font-weight:800;}
+    td,th{padding:14px 16px;border-bottom:1px solid #eef0f2;}
+    tbody tr:hover{background:#fafcfa;}
+    .addBtn,.saveBtn{background:#111315!important;color:#fff!important;border:0!important;border-radius:9px!important;font-weight:750!important;padding:10px 14px!important;}
+    .addBtn:hover,.saveBtn:hover{background:#292d31!important;}
+    .modalBox{border-radius:18px;box-shadow:0 24px 70px rgba(0,0,0,.18);border:1px solid var(--k-border);}
+    input,select,textarea{border-color:#dfe2e6!important;border-radius:9px!important;}
+    input:focus,select:focus,textarea:focus{border-color:#a8b0b8!important;box-shadow:0 0 0 3px rgba(183,255,0,.12)!important;outline:none!important;}
+
+    @media(max-width:1100px){.cards{grid-template-columns:repeat(3,minmax(0,1fr));}.quickGrid{grid-template-columns:repeat(2,minmax(0,1fr));}.dashboardGrid{grid-template-columns:1fr;}}
+    @media(max-width:700px){.content{padding:18px;}.topbar{padding:0 18px;}.dashboardHero{padding:22px;}.cards{gap:10px;}.card{padding:17px;}.cardValue{font-size:25px;}}
+    @media(max-width:450px){.cards,.quickGrid{grid-template-columns:1fr 1fr;}.cardLabel{font-size:10px;}.cardValue{font-size:23px;}.dashboardHero h1{font-size:22px;}}
+
+  
+/* =========================================================
+   KRYPTON 3D PREMIUM UI LAYER
+   Subtle depth — professional SaaS look, not gimmicky.
+========================================================= */
+
+:root{
+  --k-green:#b8ff35;
+  --k-green-2:#8fe51d;
+  --k-ink:#101214;
+  --k-panel:#ffffff;
+  --k-soft:#f5f7f5;
+  --k-line:#e5e9e4;
+  --k-shadow:0 18px 45px rgba(16,18,20,.08);
+  --k-shadow-hover:0 26px 60px rgba(16,18,20,.14);
+}
+
+/* Richer workspace background */
+body{
+  background:
+    radial-gradient(circle at 12% 8%, rgba(184,255,53,.12), transparent 24%),
+    radial-gradient(circle at 88% 12%, rgba(184,255,53,.07), transparent 22%),
+    linear-gradient(135deg,#f7f9f7 0%,#f2f4f2 100%);
+  perspective:1400px;
+}
+
+/* Sidebar depth */
+.sidebar{
+  box-shadow:
+    14px 0 35px rgba(0,0,0,.10),
+    inset -1px 0 rgba(255,255,255,.05);
+  transform:translateZ(0);
+  position:relative;
+  overflow:hidden;
+}
+
+.sidebar::before{
+  content:"";
+  position:absolute;
+  width:180px;
+  height:180px;
+  border-radius:50%;
+  background:rgba(184,255,53,.08);
+  filter:blur(18px);
+  top:-70px;
+  left:-60px;
+  pointer-events:none;
+}
+
+.sideBrand{
+  text-shadow:0 2px 14px rgba(184,255,53,.16);
+}
+
+/* Navigation feels tactile */
+.navItem{
+  transition:
+    transform .22s ease,
+    box-shadow .22s ease,
+    background .22s ease;
+}
+
+.navItem:hover{
+  transform:translateX(4px) translateZ(8px);
+  box-shadow:0 8px 20px rgba(0,0,0,.12);
+}
+
+.navItem.active{
+  box-shadow:
+    0 10px 25px rgba(184,255,53,.12),
+    inset 3px 0 var(--k-green);
+}
+
+/* Topbar depth */
+.topbar{
+  backdrop-filter:blur(16px);
+  -webkit-backdrop-filter:blur(16px);
+  box-shadow:0 8px 30px rgba(16,18,20,.06);
+  border-bottom:1px solid rgba(229,233,228,.8);
+}
+
+/* Main cards: 3D lift */
+.card,
+.statCard,
+.summaryCard,
+.dashboardCard,
+.panel,
+.section,
+.tableWrap,
+.modalBox{
+  transform-style:preserve-3d;
+  transition:
+    transform .28s cubic-bezier(.2,.8,.2,1),
+    box-shadow .28s ease,
+    border-color .28s ease;
+  box-shadow:var(--k-shadow);
+}
+
+.card:hover,
+.statCard:hover,
+.summaryCard:hover,
+.dashboardCard:hover,
+.panel:hover,
+.section:hover,
+.tableWrap:hover{
+  transform:translateY(-5px) rotateX(.6deg);
+  box-shadow:var(--k-shadow-hover);
+  border-color:#d9dfd8;
+}
+
+/* Give cards a physical top layer */
+.card::after,
+.statCard::after,
+.summaryCard::after,
+.dashboardCard::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  border-radius:inherit;
+  pointer-events:none;
+  background:linear-gradient(
+    145deg,
+    rgba(255,255,255,.42),
+    transparent 38%
+  );
+  opacity:.55;
+}
+
+/* KPI number depth */
+.statCard h2,
+.statCard .number,
+.summaryCard h2{
+  text-shadow:0 4px 12px rgba(16,18,20,.10);
+}
+
+/* Green KPI accents */
+.statCard::before,
+.summaryCard::before{
+  content:"";
+  position:absolute;
+  left:0;
+  top:0;
+  bottom:0;
+  width:3px;
+  border-radius:10px 0 0 10px;
+  background:linear-gradient(
+    180deg,
+    var(--k-green),
+    var(--k-green-2)
+  );
+}
+
+/* Buttons */
+button,
+.primaryBtn,
+.addBtn,
+.actionBtn{
+  transition:
+    transform .18s ease,
+    box-shadow .18s ease,
+    filter .18s ease;
+}
+
+button:hover,
+.primaryBtn:hover,
+.addBtn:hover,
+.actionBtn:hover{
+  transform:translateY(-2px);
+  box-shadow:
+    0 10px 22px rgba(16,18,20,.13),
+    0 0 0 3px rgba(184,255,53,.10);
+}
+
+button:active,
+.primaryBtn:active,
+.addBtn:active,
+.actionBtn:active{
+  transform:translateY(1px) scale(.985);
+  box-shadow:0 4px 10px rgba(16,18,20,.12);
+}
+
+/* Inputs feel inset */
+input,
+select,
+textarea{
+  transition:
+    border-color .18s ease,
+    box-shadow .18s ease,
+    transform .18s ease;
+}
+
+input:focus,
+select:focus,
+textarea:focus{
+  border-color:#b9d990 !important;
+  box-shadow:
+    0 0 0 4px rgba(184,255,53,.12),
+    inset 0 2px 5px rgba(0,0,0,.025);
+  transform:translateY(-1px);
+  outline:none;
+}
+
+/* Table rows */
+table tbody tr{
+  transition:
+    transform .18s ease,
+    background .18s ease,
+    box-shadow .18s ease;
+}
+
+table tbody tr:hover{
+  transform:translateX(3px);
+  background:#fbfdf9;
+  box-shadow:inset 3px 0 var(--k-green);
+}
+
+/* Login screen */
+#loginScreen{
+  background:
+    radial-gradient(circle at 20% 20%,rgba(184,255,53,.16),transparent 28%),
+    radial-gradient(circle at 80% 80%,rgba(184,255,53,.10),transparent 26%),
+    linear-gradient(135deg,#f8faf8,#eef2ee);
+}
+
+.loginBox{
+  transform:translateZ(0);
+  box-shadow:
+    0 35px 90px rgba(16,18,20,.14),
+    0 5px 20px rgba(16,18,20,.06);
+  border-color:rgba(184,255,53,.22);
+}
+
+.loginBox:hover{
+  transform:translateY(-4px);
+  box-shadow:
+    0 45px 100px rgba(16,18,20,.17),
+    0 0 0 1px rgba(184,255,53,.15);
+}
+
+/* Modal depth */
+.modalOverlay{
+  backdrop-filter:blur(7px);
+  -webkit-backdrop-filter:blur(7px);
+}
+
+.modalBox{
+  box-shadow:
+    0 40px 100px rgba(0,0,0,.25),
+    0 0 0 1px rgba(184,255,53,.10);
+}
+
+/* Small premium shine on primary actions */
+.primaryBtn,
+.addBtn{
+  position:relative;
+  overflow:hidden;
+}
+
+.primaryBtn::after,
+.addBtn::after{
+  content:"";
+  position:absolute;
+  top:-80%;
+  left:-35%;
+  width:25%;
+  height:260%;
+  transform:rotate(25deg);
+  background:rgba(255,255,255,.25);
+  transition:left .55s ease;
+  pointer-events:none;
+}
+
+.primaryBtn:hover::after,
+.addBtn:hover::after{
+  left:120%;
+}
+
+/* Respect reduced-motion */
+@media (prefers-reduced-motion:reduce){
+  *,
+  *::before,
+  *::after{
+    animation:none !important;
+    transition:none !important;
+    scroll-behavior:auto !important;
+  }
+}
+
+/* Mobile: keep depth subtle */
+@media(max-width:760px){
+  .card:hover,
+  .statCard:hover,
+  .summaryCard:hover,
+  .dashboardCard:hover,
+  .panel:hover,
+  .section:hover,
+  .tableWrap:hover{
+    transform:translateY(-2px);
+  }
+
+  .navItem:hover{
+    transform:none;
+  }
+}
+
+
+
+/* =========================================================
+   KRYPTON LIGHT RESPONSIVE OVERRIDE
+   Lightweight, clean, mobile-friendly UI
+========================================================= */
+
+*{
+  box-sizing:border-box;
+}
+
+html,body{
+  width:100%;
+  max-width:100%;
+  overflow-x:hidden;
+}
+
+body{
+  perspective:none !important;
+}
+
+/* Keep depth very subtle */
+.card:hover,
+.statCard:hover,
+.summaryCard:hover,
+.dashboardCard:hover,
+.panel:hover,
+.section:hover,
+.tableWrap:hover{
+  transform:translateY(-2px) !important;
+  box-shadow:0 12px 28px rgba(16,18,20,.08) !important;
+}
+
+/* Main layout */
+.main{
+  min-width:0;
+  width:100%;
+}
+
+.content{
+  width:100%;
+  max-width:100%;
+  overflow-x:hidden;
+}
+
+/* Tables should scroll inside their own container */
+.tableWrap{
+  width:100%;
+  max-width:100%;
+  overflow-x:auto !important;
+  -webkit-overflow-scrolling:touch;
+}
+
+.tableWrap table{
+  min-width:650px;
+}
+
+/* Forms */
+.formGrid,
+.formRow{
+  width:100%;
+  max-width:100%;
+}
+
+input,
+select,
+textarea{
+  max-width:100%;
+  min-width:0;
+}
+
+/* Dashboard grids */
+.dashboardGrid,
+.statsGrid,
+.cardsGrid,
+.summaryGrid{
+  width:100%;
+  max-width:100%;
+}
+
+/* Mobile sidebar */
+@media (max-width: 900px){
+
+  .sidebar{
+    position:fixed;
+    left:-280px;
+    top:0;
+    bottom:0;
+    width:260px;
+    z-index:1000;
+    transition:left .22s ease;
+  }
+
+  .sidebar.open{
+    left:0;
+  }
+
+  .main{
+    margin-left:0 !important;
+    width:100% !important;
+  }
+
+  .topbar{
+    width:100%;
+  }
+
+  .content{
+    padding:20px !important;
+  }
+
+  .mobileMenu{
+    display:inline-flex !important;
+  }
+
+}
+
+/* Tablet */
+@media (max-width: 700px){
+
+  .content{
+    padding:16px !important;
+  }
+
+  .sectionHeader{
+    gap:12px;
+    flex-wrap:wrap;
+  }
+
+  .sectionHeader h2{
+    font-size:20px;
+  }
+
+  .statCard,
+  .summaryCard,
+  .dashboardCard,
+  .card{
+    width:100%;
+  }
+
+  .formGrid,
+  .formRow{
+    grid-template-columns:1fr !important;
+  }
+
+  .modalBox{
+    width:calc(100% - 24px) !important;
+    max-width:calc(100% - 24px) !important;
+    max-height:90vh;
+    overflow-y:auto;
+  }
+
+}
+
+/* Phone */
+@media (max-width:480px){
+
+  .content{
+    padding:12px !important;
+  }
+
+  .topbar{
+    padding:12px 14px !important;
+  }
+
+  .pageTitle{
+    font-size:18px !important;
+  }
+
+  .userBadge{
+    display:none !important;
+  }
+
+  .section,
+  .card,
+  .statCard,
+  .summaryCard,
+  .dashboardCard,
+  .tableWrap{
+    border-radius:12px !important;
+  }
+
+  .section{
+    padding:14px !important;
+  }
+
+  button,
+  .primaryBtn,
+  .addBtn,
+  .actionBtn{
+    min-height:42px;
+  }
+
+  .sectionHeader .addBtn{
+    width:100%;
+  }
+
+  .tableWrap{
+    margin-left:0;
+    margin-right:0;
+  }
+
+  table{
+    font-size:13px;
+  }
+
+  th,td{
+    padding:10px 9px !important;
+    white-space:nowrap;
+  }
+
+  .modalBox{
+    padding:18px !important;
+  }
+
+}
+
+/* Disable mouse tilt on touch screens */
+@media (hover:none), (pointer:coarse){
+
+  .card:hover,
+  .statCard:hover,
+  .summaryCard:hover,
+  .dashboardCard:hover,
+  .panel:hover,
+  .section:hover,
+  .tableWrap:hover{
+    transform:none !important;
+  }
+
+}
+
+
+/* =========================
+   GLOBAL SEARCH / FILTER
+========================= */
+.topbarTools{display:flex;align-items:center;gap:10px;min-width:0;}
+.globalSearch{height:38px;width:260px;display:flex;align-items:center;gap:8px;background:#f6f7f6;border:1px solid #e3e7e3;border-radius:10px;padding:0 11px;color:#7b817a;}
+.globalSearch input{border:0!important;background:transparent!important;box-shadow:none!important;outline:0!important;width:100%;min-width:0;padding:0!important;transform:none!important;font-size:13px;}
+.globalFilter{height:38px;border:1px solid #e3e7e3;border-radius:10px;background:#fff;padding:0 10px;font-size:13px;color:#303530;min-width:115px;}
+.globalSearch:focus-within{border-color:#c6dcaa;box-shadow:0 0 0 3px rgba(184,255,53,.10);}
+@media(max-width:900px){.topbarTools{flex:1;justify-content:flex-end}.globalSearch{width:min(260px,42vw)}.globalFilter{display:none}.userBadge{display:none!important}}
+@media(max-width:520px){.globalSearch{width:150px;height:36px}.globalSearch input{font-size:12px}.topbarTools{gap:6px}}
+
+
+/* =========================================================
+   KRYPTON LOGIN UPGRADE
+========================================================= */
+.passwordWrap{
+  position:relative;
+  width:100%;
+}
+
+.passwordWrap input{
+  width:100%;
+  padding-right:72px !important;
+}
+
+.passwordToggle{
+  position:absolute;
+  right:8px;
+  top:50%;
+  transform:translateY(-50%) !important;
+  min-height:34px !important;
+  padding:0 10px !important;
+  border:0 !important;
+  background:transparent !important;
+  box-shadow:none !important;
+  color:#5d665e;
+  font-size:12px;
+  font-weight:700;
+  cursor:pointer;
+}
+
+.passwordToggle:hover{
+  color:#101214;
+  box-shadow:none !important;
+  transform:translateY(-50%) !important;
+}
+
+#loginButton{
+  position:relative;
+}
+
+#loginButton:disabled{
+  opacity:.7;
+  cursor:not-allowed;
+  transform:none !important;
+  box-shadow:none !important;
+}
+
+#loginError{
+  white-space:pre-line;
+}
+
+.loginHint{
+  margin-top:12px;
+  font-size:12px;
+  line-height:1.5;
+  color:#7a817b;
+  text-align:center;
+}
+
+@media(max-width:480px){
+  .loginBox{
+    width:calc(100% - 24px) !important;
+    max-width:420px;
+  }
+
+  .loginBox input{
+    font-size:16px;
+  }
+}
+
+
+/* KRYPTON BACKUP */
+.backupSection{margin-top:18px;}
+.backupSubtext{font-size:13px;color:#737a74;margin-top:2px;}
+.backupInfo{margin:0 22px 20px;padding:12px 14px;border:1px solid #e8ece7;border-radius:10px;background:#fafcf9;color:#687069;font-size:13px;}
+.backupDot{display:inline-block;width:7px;height:7px;border-radius:50%;background:#a9e92f;margin-right:8px;vertical-align:middle;}
+.backupBtn{white-space:nowrap;}
+.backupBtn:disabled{opacity:.65;cursor:wait;transform:none !important;}
+@media(max-width:600px){.backupSection .sectionHeader{align-items:flex-start;}.backupBtn{width:100%;}.backupInfo{margin:0 14px 14px;}}
+
+
+/* KRYPTON REFRESH BUTTON */
+.refreshBtn{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:7px;
+  min-height:38px;
+  padding:0 13px;
+  border:1px solid #dfe4df;
+  border-radius:10px;
+  background:#fff;
+  color:#151815;
+  font-size:13px;
+  font-weight:700;
+  cursor:pointer;
+  transition:transform .15s ease, box-shadow .15s ease, border-color .15s ease;
+  box-shadow:0 2px 8px rgba(0,0,0,.05);
+}
+
+.refreshBtn:hover{
+  transform:translateY(-1px);
+  border-color:#b9c2ba;
+  box-shadow:0 6px 16px rgba(0,0,0,.08);
+}
+
+.refreshBtn:active{
+  transform:translateY(0);
+}
+
+.refreshBtn.isRefreshing{
+  opacity:.7;
+  cursor:wait;
+}
+
+.refreshBtn.isRefreshing span{
+  display:inline-block;
+}
+
+@media(max-width:640px){
+  .refreshBtn{
+    width:38px;
+    min-width:38px;
+    padding:0;
+    border-radius:10px;
+  }
+
+  .refreshBtn span{
+    display:none;
+  }
+}
+
+</style>
+
+
+<style id="krypton-clean-layout">
+/* FINAL CLEAN KRYPTON LAYOUT OVERRIDE */
+html,body{margin:0!important;padding:0!important;min-height:100%;}
+body{background:#f4f6f5!important;overflow-x:hidden;}
+#app{display:none;min-height:100vh;width:100%;}
+#app.is-visible{display:block;}
+.sidebar{position:fixed!important;top:0!important;left:0!important;bottom:0!important;width:240px!important;height:100vh!important;min-height:100vh!important;margin:0!important;padding:22px 14px!important;z-index:1000!important;overflow-y:auto!important;overflow-x:hidden!important;}
+.main{margin-left:240px!important;min-height:100vh!important;width:calc(100% - 240px)!important;background:#f4f6f5!important;}
+.topbar{position:sticky!important;top:0!important;height:70px!important;min-height:70px!important;width:100%!important;margin:0!important;padding:0 30px!important;z-index:100!important;background:rgba(255,255,255,.96)!important;}
+.content{margin:0!important;padding:28px!important;width:100%!important;max-width:none!important;}
+.dashboardHero{margin-top:0!important;}
+.mobileMenu{display:none;}
+@media(max-width:900px){
+ .sidebar{left:-280px!important;width:260px!important;transition:left .22s ease!important;}
+ .sidebar.open{left:0!important;}
+ .main{margin-left:0!important;width:100%!important;}
+ .topbar{width:100%!important;padding:0 18px!important;}
+ .mobileMenu{display:inline-flex!important;}
+ .content{padding:20px!important;}
+}
+@media(max-width:520px){
+ .topbar{height:62px!important;min-height:62px!important;padding:0 14px!important;}
+ .content{padding:14px!important;}
+}
+</style>
+
 </head>
 
 <body>
 
-  <div class="box">
 
-    <div class="logo">
-      <span>K</span>RYPTON
+<!-- =====================================
+     LOGIN
+===================================== -->
+
+<div id="loginScreen">
+
+  <div class="loginBox">
+
+    <div class="brand">
+
+      <div class="brandLogo">
+        K
+      </div>
+
+      <h1>KRYPTON Admin</h1>
+
+      <p>
+        Manage your business in one place
+      </p>
+
     </div>
 
-    <h2>Manage</h2>
 
-    <p>GitHub frontend API test</p>
+    <div class="formGroup">
 
-    <button onclick="testAPI()">
-      Test Connection
+      <label>
+        Email
+      </label>
+
+      <input
+        id="loginEmail"
+        type="email"
+        placeholder="Enter email"
+      >
+
+    </div>
+
+
+    <div class="formGroup">
+
+      <label>
+        Password
+      </label>
+
+      <div class="passwordWrap">
+        <input
+          id="loginPassword"
+          type="password"
+          placeholder="Enter password"
+          autocomplete="current-password"
+        >
+        <button
+          type="button"
+          class="passwordToggle"
+          onclick="togglePasswordVisibility()"
+          aria-label="Show password"
+        >Show</button>
+      </div>
+
+    </div>
+
+
+    <button
+      class="primaryBtn"
+      id="loginButton"
+      onclick="login()"
+    >
+      <span id="loginButtonText">Login</span>
+      <span id="loginButtonLoader" style="display:none">Signing in…</span>
     </button>
 
-    <div id="status">
-      Ready
+
+    <div id="loginError">
+      Invalid email or password.
     </div>
 
   </div>
 
-
-  <script>
-
-    const API_URL =
-      "https://script.google.com/macros/s/AKfycbwoAe6kB_0Mj-NxLZodKkvHok4kGkgc2MLi6CJ5bjV-m85zXD0c9K7YRczSyAhbRDFW/exec";
+</div>
 
 
-    function testAPI() {
 
-      document.getElementById("status").innerText =
-        "Connecting...";
+<!-- =====================================
+     APP
+===================================== -->
 
-
-      const form =
-        document.createElement("form");
-
-      form.method = "POST";
-      form.action = API_URL;
-      form.target = "krypton_api_frame";
+<div id="app">
 
 
-      const origin =
-        document.createElement("input");
+  <!-- SIDEBAR -->
 
-      origin.type = "hidden";
-      origin.name = "origin";
-      origin.value =
-        "https://infokryptonteam.github.io";
+  <aside
+    class="sidebar"
+    id="sidebar"
+  >
 
+    <div class="sideBrand">
 
-      const action =
-        document.createElement("input");
+      <span>K</span>
 
-      action.type = "hidden";
-      action.name = "action";
-      action.value = "getAppData";
+      KRYPTON
 
-
-      const payload =
-        document.createElement("input");
-
-      payload.type = "hidden";
-      payload.name = "payload";
-
-      payload.value =
-        JSON.stringify({
-          token:
-            localStorage.getItem(
-              "krypton_token"
-            )
-        });
+    </div>
 
 
-      form.appendChild(origin);
-      form.appendChild(action);
-      form.appendChild(payload);
+    <div
+      class="navItem active"
+      data-page="dashboard"
+      onclick="showPage('dashboard')"
+    >
+      Dashboard
+    </div>
 
-      document.body.appendChild(form);
 
-      form.submit();
+    <div
+      class="navItem"
+      data-page="clients"
+      onclick="showPage('clients')"
+    >
+      Clients
+    </div>
 
-      form.remove();
 
+    <div
+      class="navItem"
+      data-page="projects"
+      onclick="showPage('projects')"
+    >
+      Projects
+    </div>
+
+
+    <div
+      class="navItem"
+      data-page="files"
+      onclick="showPage('files')"
+    >
+      Files
+    </div>
+
+
+    <div
+      class="navItem"
+      data-page="urls"
+      onclick="showPage('urls')"
+    >
+      Project URLs
+    </div>
+
+
+    <div
+      class="navItem"
+      data-page="tasks"
+      onclick="showPage('tasks')"
+    >
+      Tasks
+    </div>
+
+
+    <div
+      class="navItem"
+      data-page="team"
+      onclick="showPage('team')"
+    >
+      Team
+    </div>
+
+
+    <div
+      class="navItem"
+      data-page="payments"
+      onclick="showPage('payments')"
+    >
+      Payments
+    </div>
+
+
+    <div
+      class="navItem"
+      data-page="reports"
+      onclick="showPage('reports')"
+    >
+      Reports
+    </div>
+
+
+    <div
+      class="navItem"
+      data-page="settings"
+      onclick="showPage('settings')"
+    >
+      Settings
+    </div>
+
+
+    <div
+      class="logout"
+      onclick="logout()"
+    >
+      Logout
+    </div>
+
+  </aside>
+
+
+
+  <!-- MAIN -->
+
+  <main class="main">
+
+
+    <header class="topbar">
+
+      <div>
+
+        <button
+          class="mobileMenu"
+          onclick="toggleSidebar()"
+        >
+          ☰
+        </button>
+
+        <span
+          class="pageTitle"
+          id="pageTitle"
+        >
+          Dashboard
+        </span>
+
+      </div>
+
+
+      <div class="topbarTools">
+      <button
+        id="kryptonRefreshButton"
+        class="refreshBtn"
+        type="button"
+        onclick="refreshKryptonData()"
+        title="Refresh data"
+        aria-label="Refresh data"
+      >
+        ↻ <span>Refresh</span>
+      </button>
+
+
+        <div class="globalSearch">
+          <span>⌕</span>
+          <input id="globalSearchInput" type="search" placeholder="Search current page..." oninput="applyPageFilters()">
+        </div>
+
+        <select id="globalStatusFilter" class="globalFilter" onchange="applyPageFilters()">
+          <option value="">All status</option>
+        </select>
+
+        <div class="userBadge">KRYPTON Admin</div>
+
+      </div>
+
+    </header>
+
+
+    <div
+      class="content"
+      id="content"
+    >
+
+      <!-- CONTENT GENERATED BY JS -->
+
+    </div>
+
+
+  </main>
+
+</div>
+
+
+
+<!-- =====================================
+     MODAL
+===================================== -->
+
+<div
+  class="modal"
+  id="modal"
+>
+
+  <div class="modalBox">
+
+    <div class="modalHeader">
+
+      <h2 id="modalTitle">
+        Add
+      </h2>
+
+      <button
+        class="closeBtn"
+        onclick="closeModal()"
+      >
+        ×
+      </button>
+
+    </div>
+
+
+    <div
+      id="modalContent"
+    ></div>
+
+  </div>
+
+</div>
+
+
+
+<script>
+/* =========================================================
+   KRYPTON GITHUB / APPS SCRIPT BRIDGE
+   Keeps the existing google.script.run calls working on
+   GitHub Pages without changing the KRYPTON UI.
+   ========================================================= */
+(function () {
+  const API_URL = "https://script.google.com/macros/s/AKfycbwoAe6kB_0Mj-NxLZodKkvHok4kGkgc2MLi6CJ5bjV-m85zXD0c9K7YRczSyAhbRDFW/exec";
+  const ALLOWED_ORIGIN = "https://infokryptonteam.github.io";
+  const TIMEOUT = 30000;
+
+  const pending = new Map();
+
+  function makeId() {
+    return "k_" + Date.now() + "_" + Math.random().toString(36).slice(2);
+  }
+
+  function sendRequest(action, args, successHandler, failureHandler) {
+    const requestId = makeId();
+    const frameName = "krypton_api_" + requestId.replace(/[^a-zA-Z0-9_]/g, "");
+
+    const iframe = document.createElement("iframe");
+    iframe.name = frameName;
+    iframe.style.display = "none";
+    iframe.setAttribute("aria-hidden", "true");
+    document.body.appendChild(iframe);
+
+    const timer = setTimeout(function () {
+      pending.delete(requestId);
+      iframe.remove();
+      if (typeof failureHandler === "function") {
+        failureHandler(new Error("KRYPTON server request timed out."));
+      }
+    }, TIMEOUT);
+
+    pending.set(requestId, {
+      successHandler: successHandler,
+      failureHandler: failureHandler,
+      timer: timer,
+      iframe: iframe
+    });
+
+    const form = document.createElement("form");
+    form.method = "POST";
+    form.action = API_URL;
+    form.target = frameName;
+    form.style.display = "none";
+
+    function field(name, value) {
+      const input = document.createElement("input");
+      input.type = "hidden";
+      input.name = name;
+      input.value = value == null ? "" : String(value);
+      return input;
     }
 
+    let payload;
 
-    window.addEventListener(
-      "message",
-      function(event) {
+    if (action === "loginUser") {
+      payload = { email: args[0], password: args[1] };
+    } else if (action === "getAppData" || action === "logoutUser" || action === "createKryptonBackup") {
+      payload = { token: args[0] };
+    } else if (action === "addClient" || action === "addProject") {
+      payload = { token: args[0], data: args[1] };
+    } else if (action === "addProjectURL") {
+      payload = {
+        token: args[0], clientId: args[1], projectId: args[2],
+        name: args[3], url: args[4], type: args[5], notes: args[6]
+      };
+    } else if (action === "addRecord") {
+      payload = { token: args[0], sheetName: args[1], data: args[2] };
+    } else if (action === "uploadFile") {
+      payload = {
+        token: args[0], base64Data: args[1], fileName: args[2],
+        mimeType: args[3], clientId: args[4], projectId: args[5]
+      };
+    } else {
+      payload = { token: args[0], args: args };
+    }
 
-        if (
-          event.data &&
-          event.data.type ===
-            "KRYPTON_API_RESPONSE"
-        ) {
+    form.appendChild(field("origin", ALLOWED_ORIGIN));
+    form.appendChild(field("action", action));
+    form.appendChild(field("payload", JSON.stringify(payload)));
 
-          console.log(
-            "API RESPONSE:",
-            event.data.response
+    document.body.appendChild(form);
+    form.submit();
+    form.remove();
+  }
+
+  window.addEventListener("message", function (event) {
+    const data = event.data;
+    if (!data || data.type !== "KRYPTON_API_RESPONSE") return;
+
+    let requestId = data.requestId;
+
+    // The current Apps Script API may not echo requestId yet.
+    // If there is exactly one pending request, safely associate it.
+    if (!requestId && pending.size === 1) {
+      requestId = pending.keys().next().value;
+    }
+
+    if (!requestId || !pending.has(requestId)) return;
+
+    const item = pending.get(requestId);
+    pending.delete(requestId);
+    clearTimeout(item.timer);
+    if (item.iframe) item.iframe.remove();
+
+    const packet = data.response || {};
+
+    if (packet.success) {
+      if (typeof item.successHandler === "function") {
+        item.successHandler(packet.data);
+      }
+    } else if (typeof item.failureHandler === "function") {
+      const error = new Error(packet.message || "KRYPTON API request failed.");
+      item.failureHandler(error);
+    }
+  });
+
+  function makeRunner(successHandler, failureHandler) {
+    return new Proxy({}, {
+      get: function (_target, property) {
+        if (property === "withSuccessHandler") {
+          return function (handler) {
+            return makeRunner(handler, failureHandler);
+          };
+        }
+
+        if (property === "withFailureHandler") {
+          return function (handler) {
+            return makeRunner(successHandler, handler);
+          };
+        }
+
+        if (property === "withUserObject") {
+          return function () {
+            return makeRunner(successHandler, failureHandler);
+          };
+        }
+
+        if (typeof property !== "string") return undefined;
+
+        return function () {
+          const args = Array.prototype.slice.call(arguments);
+          sendRequest(property, args, successHandler, failureHandler);
+        };
+      }
+    });
+  }
+
+  window.google = window.google || {};
+  window.google.script = window.google.script || {};
+  window.google.script.run = makeRunner(null, null);
+})();
+
+
+let appData = {
+
+  clients: [],
+  projects: [],
+  files: [],
+  urls: [],
+  tasks: [],
+  team: [],
+  payments: [],
+  reports: [],
+  settings: []
+
+};
+
+
+let currentPage =
+  "dashboard";
+
+
+/* =========================
+   LOGIN
+========================= */
+
+let loginBusy = false;
+let loginAttempts = 0;
+let loginLockUntil = 0;
+
+function setLoginLoading(isLoading) {
+  const button = document.getElementById("loginButton");
+  const text = document.getElementById("loginButtonText");
+  const loader = document.getElementById("loginButtonLoader");
+
+  if (!button) return;
+
+  button.disabled = isLoading;
+
+  if (text) text.style.display = isLoading ? "none" : "inline";
+  if (loader) loader.style.display = isLoading ? "inline" : "none";
+}
+
+function togglePasswordVisibility() {
+  const input = document.getElementById("loginPassword");
+  const button = document.querySelector(".passwordToggle");
+
+  if (!input) return;
+
+  const visible = input.type === "text";
+  input.type = visible ? "password" : "text";
+
+  if (button) {
+    button.innerText = visible ? "Show" : "Hide";
+    button.setAttribute(
+      "aria-label",
+      visible ? "Show password" : "Hide password"
+    );
+  }
+}
+
+function login() {
+
+  if (loginBusy) return;
+
+  const now = Date.now();
+
+  if (loginLockUntil > now) {
+    const seconds = Math.ceil(
+      (loginLockUntil - now) / 1000
+    );
+
+    showLoginError(
+      "Too many failed attempts. Try again in " +
+      seconds +
+      " seconds."
+    );
+
+    return;
+  }
+
+  const email =
+    document
+      .getElementById("loginEmail")
+      .value
+      .trim();
+
+  const password =
+    document
+      .getElementById("loginPassword")
+      .value;
+
+  if (!email || !password) {
+    showLoginError(
+      "Please enter email and password."
+    );
+    return;
+  }
+
+  const emailInput =
+    document.getElementById("loginEmail");
+
+  if (
+    emailInput &&
+    !emailInput.checkValidity()
+  ) {
+    showLoginError(
+      "Please enter a valid email address."
+    );
+    emailInput.focus();
+    return;
+  }
+
+  loginBusy = true;
+  setLoginLoading(true);
+
+  const startedAt = Date.now();
+
+  google.script.run
+
+    .withSuccessHandler(
+      function(response) {
+
+        loginBusy = false;
+        setLoginLoading(false);
+
+        if (response && response.success) {
+
+          loginAttempts = 0;
+
+          sessionStorage.setItem(
+            "kryptonLoggedIn",
+            "true"
           );
 
-          document.getElementById(
-            "status"
-          ).innerText =
-            JSON.stringify(
-              event.data.response
+          sessionStorage.setItem(
+            "kryptonLoginAt",
+            String(Date.now())
+          );
+
+          if (response.token) {
+            sessionStorage.setItem(
+              "kryptonToken",
+              response.token
+            );
+          }
+
+          if (response.email) {
+            sessionStorage.setItem(
+              "kryptonUserEmail",
+              response.email
+            );
+          }
+
+          document
+            .getElementById("loginError")
+            .style.display = "none";
+
+          document
+            .getElementById("loginScreen")
+            .style.display = "none";
+
+          document
+            .getElementById("app")
+            .style.display = "block";
+
+          loadApp();
+
+        } else {
+
+          loginAttempts++;
+
+          if (loginAttempts >= 5) {
+            loginLockUntil =
+              Date.now() + 30000;
+
+            loginAttempts = 0;
+
+            showLoginError(
+              "Too many failed attempts. " +
+              "Login is temporarily locked for 30 seconds."
+            );
+          } else {
+
+            showLoginError(
+              (response && response.message) ||
+              "Invalid email or password."
+            );
+          }
+        }
+      }
+    )
+
+    .withFailureHandler(
+      function(error) {
+
+        loginBusy = false;
+        setLoginLoading(false);
+
+        showLoginError(
+          "Unable to sign in right now. Please try again."
+        );
+
+        console.error(
+          "KRYPTON login error:",
+          error
+        );
+      }
+    )
+
+    .loginUser(
+      email,
+      password
+    );
+}
+
+
+function showLoginError(message) {
+
+  const error =
+    document
+      .getElementById(
+        "loginError"
+      );
+
+  error.innerText =
+    message;
+
+  error.style.display =
+    "block";
+
+}
+
+
+/* =========================
+   SECURE BACKEND SESSION
+========================= */
+
+function getKryptonToken() {
+  return sessionStorage.getItem("kryptonToken") || "";
+}
+
+function handleKryptonAuthFailure(error) {
+  const message = String(
+    (error && error.message) || error || ""
+  );
+
+  if (
+    message.indexOf("Unauthorized") !== -1 ||
+    message.indexOf("Session expired") !== -1 ||
+    message.indexOf("Invalid session") !== -1
+  ) {
+    kryptonForceLogout(message);
+    return true;
+  }
+
+  return false;
+}
+
+/* =========================
+   LOGOUT
+========================= */
+
+function logout() {
+
+  sessionStorage
+    .removeItem(
+      "kryptonLoggedIn"
+    );
+
+  sessionStorage
+    .removeItem(
+      "kryptonLoginAt"
+    );
+
+  sessionStorage
+    .removeItem(
+      "kryptonUserEmail"
+    );
+
+  const token = getKryptonToken();
+
+  sessionStorage
+    .removeItem(
+      "kryptonToken"
+    );
+
+  if (token) {
+    google.script.run.logoutUser(token);
+  }
+
+  location.reload();
+
+}
+
+
+/* =========================
+   LOAD APP
+========================= */
+
+function loadApp() {
+
+  google.script.run
+
+    .withSuccessHandler(
+      function(data) {
+
+        appData =
+          data || appData;
+
+        showPage(
+          "dashboard"
+        );
+
+      }
+    )
+
+    .withFailureHandler(
+      function(error) {
+
+        if (handleKryptonAuthFailure(error)) return;
+
+        alert(
+          "Could not load data:\n" +
+          error.message
+        );
+
+      }
+    )
+
+    .getAppData(
+      getKryptonToken()
+    );
+
+}
+
+
+/* =========================
+   PAGE NAVIGATION
+========================= */
+
+function showPage(page) {
+
+  currentPage =
+    page;
+
+
+  document
+    .querySelectorAll(
+      ".navItem"
+    )
+    .forEach(
+      item => {
+
+        item.classList
+          .remove(
+            "active"
+          );
+
+        if (
+          item.dataset.page ===
+          page
+        ) {
+
+          item.classList
+            .add(
+              "active"
             );
 
         }
@@ -175,13 +2374,4128 @@
       }
     );
 
-  </script>
+
+  const titles = {
+
+    dashboard:
+      "Dashboard",
+
+    clients:
+      "Clients",
+
+    projects:
+      "Projects",
+
+    files:
+      "Files",
+
+    urls:
+      "Project URLs",
+
+    tasks:
+      "Tasks",
+
+    team:
+      "Team",
+
+    payments:
+      "Payments",
+
+    reports:
+      "Reports",
+
+    settings:
+      "Settings"
+
+  };
 
 
-  <iframe
-    name="krypton_api_frame"
-    style="display:none;">
-  </iframe>
+  document
+    .getElementById(
+      "pageTitle"
+    )
+    .innerText =
+      titles[page] ||
+      "KRYPTON Admin";
+
+
+  const content =
+    document
+      .getElementById(
+        "content"
+      );
+
+
+  if (
+    page === "dashboard"
+  ) {
+
+    renderDashboard();
+
+  }
+
+  else if (
+    page === "clients"
+  ) {
+
+    renderClients();
+
+  }
+
+  else if (
+    page === "projects"
+  ) {
+
+    renderProjects();
+
+  }
+
+  else if (
+    page === "files"
+  ) {
+
+    renderFiles();
+
+  }
+
+  else if (
+    page === "urls"
+  ) {
+
+    renderURLs();
+
+  }
+
+  else if (
+    page === "tasks"
+  ) {
+
+    renderTasks();
+
+  }
+
+  else if (
+    page === "team"
+  ) {
+
+    renderTeam();
+
+  }
+
+  else if (
+    page === "payments"
+  ) {
+
+    renderPayments();
+
+  }
+
+  else if (
+    page === "reports"
+  ) {
+
+    renderReports();
+
+  }
+
+  else if (
+    page === "settings"
+  ) {
+
+    renderSettings();
+
+  }
+
+
+  refreshGlobalFilter();
+  clearPageFilters();
+  applyPageFilters();
+
+  document
+    .getElementById(
+      "sidebar"
+    )
+    .classList
+    .remove(
+      "open"
+    );
+
+}
+
+
+/* =========================
+   DASHBOARD
+========================= */
+
+function renderDashboard() {
+
+  const content = document.getElementById("content");
+
+  const clients = Array.isArray(appData.clients) ? appData.clients : [];
+  const projects = Array.isArray(appData.projects) ? appData.projects : [];
+  const files = Array.isArray(appData.files) ? appData.files : [];
+  const urls = Array.isArray(appData.urls) ? appData.urls : [];
+  const payments = Array.isArray(appData.payments) ? appData.payments : [];
+  const reports = Array.isArray(appData.reports) ? appData.reports : [];
+  const tasks = Array.isArray(appData.tasks) ? appData.tasks : [];
+
+  const activeProjects = projects.filter(p => {
+    const s = String(p["Status"] || "").toLowerCase();
+    return s !== "completed" && s !== "closed";
+  }).length;
+
+  const pendingPayments = payments.reduce((sum, p) => {
+    const s = String(p["Status"] || "").toLowerCase();
+    if (s === "pending" || s === "unpaid" || s === "due" || s === "partial") {
+      return sum + (Number(p["Amount"] || 0) || 0);
+    }
+    return sum;
+  }, 0);
+
+  // Total revenue = payments that have been received/paid.
+  // Pending, unpaid, due and partial amounts are excluded from revenue.
+  const totalRevenue = payments.reduce((sum, p) => {
+    const s = String(p["Status"] || "").trim().toLowerCase();
+    if (s === "paid" || s === "received" || s === "completed" || s === "complete") {
+      return sum + (Number(p["Amount"] || 0) || 0);
+    }
+    return sum;
+  }, 0);
+
+  const clientName = id => {
+    const c = clients.find(x => String(x["Client ID"]) === String(id));
+    return c ? (c["Client Name"] || id || "-") : (id || "-");
+  };
+
+  const projectName = id => {
+    const p = projects.find(x => String(x["Project ID"]) === String(id));
+    return p ? (p["Project Name"] || id || "-") : (id || "-");
+  };
+
+  const recentProjects = projects.slice().reverse().slice(0, 5);
+  const recentPayments = payments.slice().reverse().slice(0, 5);
+
+  content.innerHTML = `
+    <div class="dashboardHero">
+      <div>
+        <h1>Good to see you, KRYPTON Admin.</h1>
+        <p>Keep your clients, projects and business operations under control.</p>
+      </div>
+      <div class="heroMark">K</div>
+    </div>
+
+    <div class="cards">
+      <div class="card"><div class="cardLabel">Total Clients</div><div class="cardValue">${clients.length}</div></div>
+      <div class="card"><div class="cardLabel">Active Projects</div><div class="cardValue">${activeProjects}</div></div>
+      <div class="card"><div class="cardLabel">Total Revenue</div><div class="cardValue">₹${totalRevenue.toLocaleString("en-IN")}</div></div>
+      <div class="card"><div class="cardLabel">Files Managed</div><div class="cardValue">${files.length}</div></div>
+      <div class="card"><div class="cardLabel">Pending Payments</div><div class="cardValue">₹${pendingPayments.toLocaleString("en-IN")}</div></div>
+    </div>
+
+    <div class="quickGrid">
+      <button class="quickAction" onclick="openClientModal()">+ Add Client<span>Create a new client record</span></button>
+      <button class="quickAction" onclick="openProjectModal()">+ Add Project<span>Start a client project</span></button>
+      <button class="quickAction" onclick="showPage('files')">Upload File<span>Manage project assets</span></button>
+      <button class="quickAction" onclick="openPaymentModal()">+ Add Payment<span>Record client billing</span></button>
+    </div>
+
+    <div class="dashboardGrid">
+      <div>
+        <div class="section">
+          <div class="sectionHeader">
+            <h2>Recent Projects</h2>
+          </div>
+          <div class="tableWrap">
+            <table>
+              <thead><tr><th>Project</th><th>Client</th><th>Status</th><th>Deadline</th></tr></thead>
+              <tbody>
+                ${recentProjects.length ? recentProjects.map(p => `
+                  <tr>
+                    <td><strong>${p["Project Name"] || "-"}</strong></td>
+                    <td>${clientName(p["Client ID"])}</td>
+                    <td>${p["Status"] || "-"}</td>
+                    <td>${p["Deadline"] || "-"}</td>
+                  </tr>
+                `).join("") : `<tr><td colspan="4" style="text-align:center;color:#777;padding:30px;">No projects yet.</td></tr>`}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="sectionHeader"><h2>Recent Payments</h2></div>
+          <div class="tableWrap">
+            <table>
+              <thead><tr><th>Client</th><th>Project</th><th>Amount</th><th>Status</th></tr></thead>
+              <tbody>
+                ${recentPayments.length ? recentPayments.map(p => `
+                  <tr>
+                    <td><strong>${clientName(p["Client ID"])}</strong></td>
+                    <td>${projectName(p["Project ID"])}</td>
+                    <td>₹${(Number(p["Amount"] || 0) || 0).toLocaleString("en-IN")}</td>
+                    <td>${p["Status"] || "-"}</td>
+                  </tr>
+                `).join("") : `<tr><td colspan="4" style="text-align:center;color:#777;padding:30px;">No payments yet.</td></tr>`}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="section">
+          <div class="sectionHeader"><h2>Workspace Overview</h2></div>
+          <div style="padding:20px;display:grid;gap:14px;">
+            <div style="display:flex;justify-content:space-between;border-bottom:1px solid #eef0f2;padding-bottom:12px;"><span style="color:#70757d;">Project URLs</span><strong>${urls.length}</strong></div>
+            <div style="display:flex;justify-content:space-between;border-bottom:1px solid #eef0f2;padding-bottom:12px;"><span style="color:#70757d;">Reports</span><strong>${reports.length}</strong></div>
+            <div style="display:flex;justify-content:space-between;border-bottom:1px solid #eef0f2;padding-bottom:12px;"><span style="color:#70757d;">Tasks</span><strong>${tasks.length}</strong></div>
+            <div style="display:flex;justify-content:space-between;"><span style="color:#70757d;">Files</span><strong>${files.length}</strong></div>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="sectionHeader"><h2>Recent Clients</h2></div>
+          <div style="padding:8px 20px 14px;">
+            ${clients.slice().reverse().slice(0,6).map(c => `
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid #eef0f2;">
+                <div><strong>${c["Client Name"] || "-"}</strong><div style="font-size:12px;color:#8a8f96;margin-top:3px;">${c["Services"] || "Client"}</div></div>
+                <span style="font-size:12px;font-weight:700;color:#6f757c;">${c["Status"] || "Active"}</span>
+              </div>
+            `).join("") || `<div style="padding:24px 0;color:#777;text-align:center;">No clients yet.</div>`}
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+
+/* =========================
+   CLIENTS
+========================= */
+
+function renderClients() {
+
+  document
+    .getElementById(
+      "content"
+    )
+    .innerHTML = `
+
+      <div class="section">
+
+        <div class="sectionHeader">
+
+          <h2>
+            All Clients
+          </h2>
+
+          <button
+            class="addBtn"
+            onclick="openClientModal()"
+          >
+            + Add Client
+          </button>
+
+        </div>
+
+
+        <div class="tableWrap">
+
+          <table>
+
+            <thead>
+
+              <tr>
+
+                <th>
+                  Client
+                </th>
+
+                <th>
+                  Contact
+                </th>
+
+                <th>
+                  Phone
+                </th>
+
+                <th>
+                  Services
+                </th>
+
+                <th>
+                  Status
+                </th>
+
+              </tr>
+
+            </thead>
+
+
+            <tbody>
+
+              ${
+                appData.clients
+                  .map(
+                    client => `
+
+                      <tr>
+
+                        <td>
+                          <strong>
+                            ${
+                              client[
+                                "Client Name"
+                              ] ||
+                              "-"
+                            }
+                          </strong>
+                        </td>
+
+                        <td>
+                          ${
+                            client[
+                              "Contact Person"
+                            ] ||
+                            "-"
+                          }
+                        </td>
+
+                        <td>
+                          ${
+                            client[
+                              "Phone"
+                            ] ||
+                            "-"
+                          }
+                        </td>
+
+                        <td>
+                          ${
+                            client[
+                              "Services"
+                            ] ||
+                            "-"
+                          }
+                        </td>
+
+                        <td>
+                          ${
+                            client[
+                              "Status"
+                            ] ||
+                            "-"
+                          }
+                        </td>
+
+                      </tr>
+
+                    `
+                  )
+                  .join("")
+              }
+
+            </tbody>
+
+          </table>
+
+        </div>
+
+      </div>
+
+  `;
+
+}
+
+
+/* =========================
+   CLIENT MODAL
+========================= */
+
+function openClientModal() {
+
+  document
+    .getElementById(
+      "modalTitle"
+    )
+    .innerText =
+      "Add Client";
+
+
+  document
+    .getElementById(
+      "modalContent"
+    )
+    .innerHTML = `
+
+      <div class="formGrid">
+
+        <div class="formGroup">
+          <label>
+            Client Name
+          </label>
+          <input
+            id="clientName"
+            placeholder="Client / Company name"
+          >
+        </div>
+
+
+        <div class="formGroup">
+          <label>
+            Contact Person
+          </label>
+          <input
+            id="contactPerson"
+          >
+        </div>
+
+
+        <div class="formGroup">
+          <label>
+            Phone
+          </label>
+          <input
+            id="clientPhone"
+          >
+        </div>
+
+
+        <div class="formGroup">
+          <label>
+            Email
+          </label>
+          <input
+            id="clientEmail"
+            type="email"
+          >
+        </div>
+
+
+        <div class="formGroup">
+
+          <label>
+            Services
+          </label>
+
+          <input
+            id="clientServices"
+            placeholder="Web, Design, Marketing..."
+          >
+
+        </div>
+
+
+        <div class="formGroup">
+
+          <label>
+            Status
+          </label>
+
+          <select id="clientStatus">
+
+            <option>
+              Active
+            </option>
+
+            <option>
+              Inactive
+            </option>
+
+            <option>
+              Completed
+            </option>
+
+          </select>
+
+        </div>
+
+
+        <div class="formGroup">
+
+          <label>
+            Start Date
+          </label>
+
+          <input
+            id="clientStart"
+            type="date"
+          >
+
+        </div>
+
+
+        <div class="formGroup full">
+
+          <label>
+            Notes
+          </label>
+
+          <textarea
+            id="clientNotes"
+          ></textarea>
+
+        </div>
+
+      </div>
+
+
+      <div class="modalActions">
+
+        <button
+          class="cancelBtn"
+          onclick="closeModal()"
+        >
+          Cancel
+        </button>
+
+        <button
+          class="saveBtn"
+          onclick="saveClient()"
+        >
+          Save Client
+        </button>
+
+      </div>
+
+  `;
+
+
+  openModal();
+
+}
+
+
+function saveClient() {
+
+  const data = {
+
+    "Client Name":
+      document
+        .getElementById(
+          "clientName"
+        )
+        .value,
+
+    "Contact Person":
+      document
+        .getElementById(
+          "contactPerson"
+        )
+        .value,
+
+    "Phone":
+      document
+        .getElementById(
+          "clientPhone"
+        )
+        .value,
+
+    "Email":
+      document
+        .getElementById(
+          "clientEmail"
+        )
+        .value,
+
+    "Services":
+      document
+        .getElementById(
+          "clientServices"
+        )
+        .value,
+
+    "Status":
+      document
+        .getElementById(
+          "clientStatus"
+        )
+        .value,
+
+    "Start Date":
+      document
+        .getElementById(
+          "clientStart"
+        )
+        .value,
+
+    "Notes":
+      document
+        .getElementById(
+          "clientNotes"
+        )
+        .value
+
+  };
+
+
+  if (
+    !data["Client Name"]
+  ) {
+
+    alert(
+      "Please enter client name."
+    );
+
+    return;
+
+  }
+
+
+  google.script.run
+
+    .withSuccessHandler(
+      function() {
+
+        closeModal();
+
+        reloadData();
+
+        alert(
+          "Client added successfully."
+        );
+
+      }
+    )
+
+    .withFailureHandler(
+      function(error) {
+
+        if (handleKryptonAuthFailure(error)) return;
+
+        alert(
+          error.message
+        );
+
+      }
+    )
+
+    .addClient(
+      getKryptonToken(),
+      data
+    );
+
+}
+
+
+/* =========================
+   PROJECTS
+========================= */
+
+function renderProjects() {
+
+  document
+    .getElementById(
+      "content"
+    )
+    .innerHTML = `
+
+      <div class="section">
+
+        <div class="sectionHeader">
+
+          <h2>
+            Projects
+          </h2>
+
+          <button
+            class="addBtn"
+            onclick="openProjectModal()"
+          >
+            + Add Project
+          </button>
+
+        </div>
+
+
+        <div class="tableWrap">
+
+          <table>
+
+            <thead>
+
+              <tr>
+
+                <th>
+                  Project
+                </th>
+
+                <th>
+                  Client ID
+                </th>
+
+                <th>
+                  Assigned To
+                </th>
+
+                <th>
+                  Deadline
+                </th>
+
+                <th>
+                  Status
+                </th>
+
+              </tr>
+
+            </thead>
+
+
+            <tbody>
+
+              ${
+                appData.projects
+                  .map(
+                    project => `
+
+                      <tr>
+
+                        <td>
+                          <strong>
+                            ${
+                              project[
+                                "Project Name"
+                              ] ||
+                              "-"
+                            }
+                          </strong>
+                        </td>
+
+                        <td>
+                          ${
+                            project[
+                              "Client ID"
+                            ] ||
+                            "-"
+                          }
+                        </td>
+
+                        <td>
+                          ${
+                            project[
+                              "Assigned To"
+                            ] ||
+                            "-"
+                          }
+                        </td>
+
+                        <td>
+                          ${
+                            project[
+                              "Deadline"
+                            ] ||
+                            "-"
+                          }
+                        </td>
+
+                        <td>
+                          ${
+                            project[
+                              "Status"
+                            ] ||
+                            "-"
+                          }
+                        </td>
+
+                      </tr>
+
+                    `
+                  )
+                  .join("")
+              }
+
+            </tbody>
+
+          </table>
+
+        </div>
+
+      </div>
+
+  `;
+
+}
+
+
+/* =========================
+   PROJECT MODAL
+========================= */
+
+function openProjectModal() {
+
+  document
+    .getElementById(
+      "modalTitle"
+    )
+    .innerText =
+      "Add Project";
+
+
+  const clientOptions =
+    appData.clients
+      .map(
+        c => `
+
+          <option
+            value="${
+              c["Client ID"] ||
+              ""
+            }"
+          >
+            ${
+              c["Client Name"] ||
+              c["Client ID"] ||
+              ""
+            }
+          </option>
+
+        `
+      )
+      .join("");
+
+
+  document
+    .getElementById(
+      "modalContent"
+    )
+    .innerHTML = `
+
+      <div class="formGrid">
+
+        <div class="formGroup">
+
+          <label>
+            Client
+          </label>
+
+          <select id="projectClient">
+
+            <option value="">
+              Select Client
+            </option>
+
+            ${clientOptions}
+
+          </select>
+
+        </div>
+
+
+        <div class="formGroup">
+
+          <label>
+            Project Name
+          </label>
+
+          <input
+            id="projectName"
+          >
+
+        </div>
+
+
+        <div class="formGroup full">
+
+          <label>
+            Description
+          </label>
+
+          <textarea
+            id="projectDescription"
+          ></textarea>
+
+        </div>
+
+
+        <div class="formGroup">
+
+          <label>
+            Assigned To
+          </label>
+
+          <input
+            id="projectAssigned"
+          >
+
+        </div>
+
+
+        <div class="formGroup">
+
+          <label>
+            Priority
+          </label>
+
+          <select id="projectPriority">
+
+            <option>
+              Low
+            </option>
+
+            <option selected>
+              Medium
+            </option>
+
+            <option>
+              High
+            </option>
+
+          </select>
+
+        </div>
+
+
+        <div class="formGroup">
+
+          <label>
+            Status
+          </label>
+
+          <select id="projectStatus">
+
+            <option>
+              Planning
+            </option>
+
+            <option>
+              In Progress
+            </option>
+
+            <option>
+              Completed
+            </option>
+
+            <option>
+              On Hold
+            </option>
+
+          </select>
+
+        </div>
+
+
+        <div class="formGroup">
+
+          <label>
+            Budget
+          </label>
+
+          <input
+            id="projectBudget"
+            type="number"
+          >
+
+        </div>
+
+
+        <div class="formGroup">
+
+          <label>
+            Start Date
+          </label>
+
+          <input
+            id="projectStart"
+            type="date"
+          >
+
+        </div>
+
+
+        <div class="formGroup">
+
+          <label>
+            Deadline
+          </label>
+
+          <input
+            id="projectDeadline"
+            type="date"
+          >
+
+        </div>
+
+
+        <div class="formGroup full">
+
+          <label>
+            Notes
+          </label>
+
+          <textarea
+            id="projectNotes"
+          ></textarea>
+
+        </div>
+
+      </div>
+
+
+      <div class="modalActions">
+
+        <button
+          class="cancelBtn"
+          onclick="closeModal()"
+        >
+          Cancel
+        </button>
+
+        <button
+          class="saveBtn"
+          onclick="saveProject()"
+        >
+          Save Project
+        </button>
+
+      </div>
+
+  `;
+
+
+  openModal();
+
+}
+
+
+function saveProject() {
+
+  const data = {
+
+    "Client ID":
+      document
+        .getElementById(
+          "projectClient"
+        )
+        .value,
+
+    "Project Name":
+      document
+        .getElementById(
+          "projectName"
+        )
+        .value,
+
+    "Description":
+      document
+        .getElementById(
+          "projectDescription"
+        )
+        .value,
+
+    "Assigned To":
+      document
+        .getElementById(
+          "projectAssigned"
+        )
+        .value,
+
+    "Priority":
+      document
+        .getElementById(
+          "projectPriority"
+        )
+        .value,
+
+    "Status":
+      document
+        .getElementById(
+          "projectStatus"
+        )
+        .value,
+
+    "Start Date":
+      document
+        .getElementById(
+          "projectStart"
+        )
+        .value,
+
+    "Deadline":
+      document
+        .getElementById(
+          "projectDeadline"
+        )
+        .value,
+
+    "Budget":
+      document
+        .getElementById(
+          "projectBudget"
+        )
+        .value,
+
+    "Notes":
+      document
+        .getElementById(
+          "projectNotes"
+        )
+        .value
+
+  };
+
+
+  if (
+    !data["Client ID"] ||
+    !data["Project Name"]
+  ) {
+
+    alert(
+      "Client and project name are required."
+    );
+
+    return;
+
+  }
+
+
+  google.script.run
+
+    .withSuccessHandler(
+      function() {
+
+        closeModal();
+
+        reloadData();
+
+        alert(
+          "Project added successfully."
+        );
+
+      }
+    )
+
+    .withFailureHandler(
+      function(error) {
+
+        if (handleKryptonAuthFailure(error)) return;
+
+        alert(
+          error.message
+        );
+
+      }
+    )
+
+    .addProject(
+      getKryptonToken(),
+      data
+    );
+
+}
+
+
+/* =========================
+   FILES
+========================= */
+
+function renderFiles() {
+
+  document
+    .getElementById(
+      "content"
+    )
+    .innerHTML = `
+
+      <div class="section">
+
+        <div class="sectionHeader">
+
+          <h2>
+            Project Files
+          </h2>
+
+          <button
+            class="addBtn"
+            onclick="openFileModal()"
+          >
+            + Upload File
+          </button>
+
+        </div>
+
+
+        <div class="tableWrap">
+
+          <table>
+
+            <thead>
+
+              <tr>
+
+                <th>
+                  File
+                </th>
+
+                <th>
+                  Client
+                </th>
+
+                <th>
+                  Project
+                </th>
+
+                <th>
+                  Type
+                </th>
+
+                <th>
+                  Link
+                </th>
+
+              </tr>
+
+            </thead>
+
+
+            <tbody>
+
+              ${
+                appData.files
+                  .map(
+                    file => `
+
+                      <tr>
+
+                        <td>
+                          ${
+                            file[
+                              "File Name"
+                            ] ||
+                            "-"
+                          }
+                        </td>
+
+                        <td>
+                          ${
+                            file[
+                              "Client ID"
+                            ] ||
+                            "-"
+                          }
+                        </td>
+
+                        <td>
+                          ${
+                            file[
+                              "Project ID"
+                            ] ||
+                            "-"
+                          }
+                        </td>
+
+                        <td>
+                          ${
+                            file[
+                              "File Type"
+                            ] ||
+                            "-"
+                          }
+                        </td>
+
+                        <td>
+
+                          ${
+                            file[
+                              "File Link"
+                            ]
+
+                              ? `
+
+                                <a
+                                  href="${
+                                    file[
+                                      "File Link"
+                                    ]
+                                  }"
+                                  target="_blank"
+                                >
+                                  Open
+                                </a>
+
+                              `
+
+                              : "-"
+                          }
+
+                        </td>
+
+                      </tr>
+
+                    `
+                  )
+                  .join("")
+              }
+
+            </tbody>
+
+          </table>
+
+        </div>
+
+      </div>
+
+  `;
+
+}
+
+
+/* =========================
+   FILE MODAL
+========================= */
+
+function openFileModal() {
+
+  const clientOptions =
+    appData.clients
+      .map(
+        c => `
+
+          <option
+            value="${
+              c["Client ID"] || ""
+            }"
+          >
+            ${
+              c["Client Name"] ||
+              c["Client ID"] ||
+              ""
+            }
+          </option>
+
+        `
+      )
+      .join("");
+
+
+  document
+    .getElementById(
+      "modalTitle"
+    )
+    .innerText =
+      "Upload Project File";
+
+
+  document
+    .getElementById(
+      "modalContent"
+    )
+    .innerHTML = `
+
+      <div class="formGrid">
+
+        <div class="formGroup">
+
+          <label>
+            Client
+          </label>
+
+          <select
+            id="fileClient"
+            onchange="updateProjectOptions('fileClient','fileProject')"
+          >
+
+            <option value="">
+              Select Client
+            </option>
+
+            ${clientOptions}
+
+          </select>
+
+        </div>
+
+
+        <div class="formGroup">
+
+          <label>
+            Project
+          </label>
+
+          <select
+            id="fileProject"
+          >
+
+            <option value="">
+              Select Project
+            </option>
+
+          </select>
+
+        </div>
+
+
+        <div class="formGroup full">
+
+          <label>
+            Select File
+          </label>
+
+          <input
+            id="fileInput"
+            type="file"
+          >
+
+        </div>
+
+      </div>
+
+
+      <div class="modalActions">
+
+        <button
+          class="cancelBtn"
+          onclick="closeModal()"
+        >
+          Cancel
+        </button>
+
+        <button
+          class="saveBtn"
+          onclick="uploadSelectedFile()"
+        >
+          Upload
+        </button>
+
+      </div>
+
+  `;
+
+
+  openModal();
+
+}
+
+
+function updateProjectOptions(
+  clientSelectId,
+  projectSelectId
+) {
+
+  const clientId =
+    document
+      .getElementById(
+        clientSelectId
+      )
+      .value;
+
+
+  const select =
+    document
+      .getElementById(
+        projectSelectId
+      );
+
+
+  const projects =
+    appData.projects
+      .filter(
+        p =>
+          String(
+            p["Client ID"]
+          ) ===
+          String(clientId)
+      );
+
+
+  select.innerHTML = `
+
+    <option value="">
+      Select Project
+    </option>
+
+    ${
+      projects
+        .map(
+          p => `
+
+            <option
+              value="${
+                p["Project ID"] ||
+                ""
+              }"
+            >
+              ${
+                p["Project Name"] ||
+                p["Project ID"] ||
+                ""
+              }
+            </option>
+
+          `
+        )
+        .join("")
+    }
+
+  `;
+
+}
+
+
+function uploadSelectedFile() {
+
+  const clientId =
+    document
+      .getElementById(
+        "fileClient"
+      )
+      .value;
+
+  const projectId =
+    document
+      .getElementById(
+        "fileProject"
+      )
+      .value;
+
+  const fileInput =
+    document
+      .getElementById(
+        "fileInput"
+      );
+
+
+  if (
+    !clientId ||
+    !projectId ||
+    !fileInput.files.length
+  ) {
+
+    alert(
+      "Please select client, project and file."
+    );
+
+    return;
+
+  }
+
+
+  const file =
+    fileInput.files[0];
+
+
+  const reader =
+    new FileReader();
+
+
+  reader.onload =
+    function(event) {
+
+      const base64 =
+        event.target.result
+          .split(",")[1];
+
+
+      google.script.run
+
+        .withSuccessHandler(
+          function(response) {
+
+            if (
+              response.success
+            ) {
+
+              closeModal();
+
+              reloadData();
+
+              alert(
+                "File uploaded successfully."
+              );
+
+            }
+
+            else {
+
+              alert(
+                response.message
+              );
+
+            }
+
+          }
+        )
+
+        .withFailureHandler(
+          function(error) {
+
+            alert(
+              error.message
+            );
+
+          }
+        )
+
+        .uploadFile(
+          getKryptonToken(),
+          base64,
+          file.name,
+          file.type,
+          clientId,
+          projectId
+        );
+
+    };
+
+
+  reader.readAsDataURL(file);
+
+}
+
+
+/* =========================
+   URLS
+========================= */
+
+function renderURLs() {
+
+  document
+    .getElementById(
+      "content"
+    )
+    .innerHTML = `
+
+      <div class="section">
+
+        <div class="sectionHeader">
+
+          <h2>
+            Project URLs
+          </h2>
+
+          <button
+            class="addBtn"
+            onclick="openURLModal()"
+          >
+            + Add URL
+          </button>
+
+        </div>
+
+
+        <div class="tableWrap">
+
+          <table>
+
+            <thead>
+
+              <tr>
+
+                <th>
+                  Name
+                </th>
+
+                <th>
+                  Client
+                </th>
+
+                <th>
+                  Project
+                </th>
+
+                <th>
+                  Type
+                </th>
+
+                <th>
+                  Link
+                </th>
+
+              </tr>
+
+            </thead>
+
+
+            <tbody>
+
+              ${
+                appData.urls
+                  .map(
+                    item => `
+
+                      <tr>
+
+                        <td>
+                          ${
+                            item[
+                              "URL Name"
+                            ] ||
+                            "-"
+                          }
+                        </td>
+
+                        <td>
+                          ${
+                            item[
+                              "Client ID"
+                            ] ||
+                            "-"
+                          }
+                        </td>
+
+                        <td>
+                          ${
+                            item[
+                              "Project ID"
+                            ] ||
+                            "-"
+                          }
+                        </td>
+
+                        <td>
+                          ${
+                            item[
+                              "Type"
+                            ] ||
+                            "-"
+                          }
+                        </td>
+
+                        <td>
+
+                          ${
+                            item["URL"]
+
+                              ? `
+
+                                <a
+                                  href="${
+                                    item["URL"]
+                                  }"
+                                  target="_blank"
+                                >
+                                  Open
+                                </a>
+
+                              `
+
+                              : "-"
+                          }
+
+                        </td>
+
+                      </tr>
+
+                    `
+                  )
+                  .join("")
+              }
+
+            </tbody>
+
+          </table>
+
+        </div>
+
+      </div>
+
+  `;
+
+}
+
+
+function openURLModal() {
+
+  const clientOptions =
+    appData.clients
+      .map(
+        c => `
+
+          <option
+            value="${
+              c["Client ID"] || ""
+            }"
+          >
+            ${
+              c["Client Name"] ||
+              c["Client ID"] ||
+              ""
+            }
+          </option>
+
+        `
+      )
+      .join("");
+
+
+  document
+    .getElementById(
+      "modalTitle"
+    )
+    .innerText =
+      "Add Project URL";
+
+
+  document
+    .getElementById(
+      "modalContent"
+    )
+    .innerHTML = `
+
+      <div class="formGrid">
+
+        <div class="formGroup">
+
+          <label>
+            Client
+          </label>
+
+          <select
+            id="urlClient"
+            onchange="updateProjectOptions('urlClient','urlProject')"
+          >
+
+            <option value="">
+              Select Client
+            </option>
+
+            ${clientOptions}
+
+          </select>
+
+        </div>
+
+
+        <div class="formGroup">
+
+          <label>
+            Project
+          </label>
+
+          <select
+            id="urlProject"
+          >
+
+            <option value="">
+              Select Project
+            </option>
+
+          </select>
+
+        </div>
+
+
+        <div class="formGroup">
+
+          <label>
+            URL Name
+          </label>
+
+          <input
+            id="urlName"
+            placeholder="Live Website / Figma / Drive"
+          >
+
+        </div>
+
+
+        <div class="formGroup">
+
+          <label>
+            Type
+          </label>
+
+          <input
+            id="urlType"
+            placeholder="Website / Design / Drive"
+          >
+
+        </div>
+
+
+        <div class="formGroup full">
+
+          <label>
+            URL
+          </label>
+
+          <input
+            id="urlValue"
+            placeholder="https://..."
+          >
+
+        </div>
+
+
+        <div class="formGroup full">
+
+          <label>
+            Notes
+          </label>
+
+          <textarea
+            id="urlNotes"
+          ></textarea>
+
+        </div>
+
+      </div>
+
+
+      <div class="modalActions">
+
+        <button
+          class="cancelBtn"
+          onclick="closeModal()"
+        >
+          Cancel
+        </button>
+
+        <button
+          class="saveBtn"
+          onclick="saveURL()"
+        >
+          Save URL
+        </button>
+
+      </div>
+
+  `;
+
+
+  openModal();
+
+}
+
+
+function saveURL() {
+
+  const clientId =
+    document
+      .getElementById(
+        "urlClient"
+      )
+      .value;
+
+  const projectId =
+    document
+      .getElementById(
+        "urlProject"
+      )
+      .value;
+
+  const name =
+    document
+      .getElementById(
+        "urlName"
+      )
+      .value;
+
+  const url =
+    document
+      .getElementById(
+        "urlValue"
+      )
+      .value;
+
+  const type =
+    document
+      .getElementById(
+        "urlType"
+      )
+      .value;
+
+  const notes =
+    document
+      .getElementById(
+        "urlNotes"
+      )
+      .value;
+
+
+  if (
+    !clientId ||
+    !projectId ||
+    !name ||
+    !url
+  ) {
+
+    alert(
+      "Client, project, name and URL are required."
+    );
+
+    return;
+
+  }
+
+
+  google.script.run
+
+    .withSuccessHandler(
+      function() {
+
+        closeModal();
+
+        reloadData();
+
+        alert(
+          "URL added successfully."
+        );
+
+      }
+    )
+
+    .withFailureHandler(
+      function(error) {
+
+        if (handleKryptonAuthFailure(error)) return;
+
+        alert(
+          error.message
+        );
+
+      }
+    )
+
+    .addProjectURL(
+      getKryptonToken(),
+      clientId,
+      projectId,
+      name,
+      url,
+      type,
+      notes
+    );
+
+}
+
+
+/* =========================
+   TASKS
+========================= */
+
+function renderTasks() {
+
+  document
+    .getElementById(
+      "content"
+    )
+    .innerHTML = `
+
+      <div class="section">
+
+        <div class="sectionHeader">
+
+          <h2>
+            Tasks
+          </h2>
+
+          <button
+            class="addBtn"
+            onclick="openTaskModal()"
+          >
+            + Add Task
+          </button>
+
+        </div>
+
+
+        <div class="tableWrap">
+
+          <table>
+
+            <thead>
+
+              <tr>
+
+                <th>
+                  Task
+                </th>
+
+                <th>
+                  Project
+                </th>
+
+                <th>
+                  Assigned To
+                </th>
+
+                <th>
+                  Priority
+                </th>
+
+                <th>
+                  Status
+                </th>
+
+                <th>
+                  Deadline
+                </th>
+
+              </tr>
+
+            </thead>
+
+
+            <tbody>
+
+              ${
+                appData.tasks
+                  .map(
+                    task => `
+
+                      <tr>
+
+                        <td>
+                          ${
+                            task["Task"] ||
+                            "-"
+                          }
+                        </td>
+
+                        <td>
+                          ${
+                            task[
+                              "Project ID"
+                            ] ||
+                            "-"
+                          }
+                        </td>
+
+                        <td>
+                          ${
+                            task[
+                              "Assigned To"
+                            ] ||
+                            "-"
+                          }
+                        </td>
+
+                        <td>
+                          ${
+                            task[
+                              "Priority"
+                            ] ||
+                            "-"
+                          }
+                        </td>
+
+                        <td>
+                          ${
+                            task[
+                              "Status"
+                            ] ||
+                            "-"
+                          }
+                        </td>
+
+                        <td>
+                          ${
+                            task[
+                              "Deadline"
+                            ] ||
+                            "-"
+                          }
+                        </td>
+
+                      </tr>
+
+                    `
+                  )
+                  .join("")
+              }
+
+            </tbody>
+
+          </table>
+
+        </div>
+
+      </div>
+
+  `;
+
+}
+
+
+/* =========================
+   TASK MODAL
+========================= */
+
+function openTaskModal() {
+
+  document
+    .getElementById(
+      "modalTitle"
+    )
+    .innerText =
+      "Add Task";
+
+
+  const clientOptions =
+    appData.clients
+      .map(
+        c => `
+
+          <option
+            value="${
+              c["Client ID"] || ""
+            }"
+          >
+            ${
+              c["Client Name"] ||
+              c["Client ID"] ||
+              ""
+            }
+          </option>
+
+        `
+      )
+      .join("");
+
+
+  document
+    .getElementById(
+      "modalContent"
+    )
+    .innerHTML = `
+
+      <div class="formGrid">
+
+        <div class="formGroup">
+
+          <label>
+            Client
+          </label>
+
+          <select
+            id="taskClient"
+            onchange="updateProjectOptions('taskClient','taskProject')"
+          >
+
+            <option value="">
+              Select Client
+            </option>
+
+            ${clientOptions}
+
+          </select>
+
+        </div>
+
+
+        <div class="formGroup">
+
+          <label>
+            Project
+          </label>
+
+          <select
+            id="taskProject"
+          >
+
+            <option value="">
+              Select Project
+            </option>
+
+          </select>
+
+        </div>
+
+
+        <div class="formGroup full">
+
+          <label>
+            Task
+          </label>
+
+          <input
+            id="taskName"
+          >
+
+        </div>
+
+
+        <div class="formGroup">
+
+          <label>
+            Assigned To
+          </label>
+
+          <input
+            id="taskAssigned"
+          >
+
+        </div>
+
+
+        <div class="formGroup">
+
+          <label>
+            Priority
+          </label>
+
+          <select id="taskPriority">
+
+            <option>
+              Low
+            </option>
+
+            <option selected>
+              Medium
+            </option>
+
+            <option>
+              High
+            </option>
+
+          </select>
+
+        </div>
+
+
+        <div class="formGroup">
+
+          <label>
+            Status
+          </label>
+
+          <select id="taskStatus">
+
+            <option>
+              Pending
+            </option>
+
+            <option>
+              In Progress
+            </option>
+
+            <option>
+              Completed
+            </option>
+
+          </select>
+
+        </div>
+
+
+        <div class="formGroup">
+
+          <label>
+            Deadline
+          </label>
+
+          <input
+            id="taskDeadline"
+            type="date"
+          >
+
+        </div>
+
+      </div>
+
+
+      <div class="modalActions">
+
+        <button
+          class="cancelBtn"
+          onclick="closeModal()"
+        >
+          Cancel
+        </button>
+
+        <button
+          class="saveBtn"
+          onclick="saveTask()"
+        >
+          Save Task
+        </button>
+
+      </div>
+
+  `;
+
+
+  openModal();
+
+}
+
+
+function saveTask() {
+
+  const data = {
+
+    "Task ID":
+      "TSK-" +
+      Date.now(),
+
+    "Client ID":
+      document
+        .getElementById(
+          "taskClient"
+        )
+        .value,
+
+    "Project ID":
+      document
+        .getElementById(
+          "taskProject"
+        )
+        .value,
+
+    "Task":
+      document
+        .getElementById(
+          "taskName"
+        )
+        .value,
+
+    "Assigned To":
+      document
+        .getElementById(
+          "taskAssigned"
+        )
+        .value,
+
+    "Priority":
+      document
+        .getElementById(
+          "taskPriority"
+        )
+        .value,
+
+    "Status":
+      document
+        .getElementById(
+          "taskStatus"
+        )
+        .value,
+
+    "Deadline":
+      document
+        .getElementById(
+          "taskDeadline"
+        )
+        .value
+
+  };
+
+
+  if (
+    !data["Task"] ||
+    !data["Client ID"] ||
+    !data["Project ID"]
+  ) {
+
+    alert(
+      "Client, project and task are required."
+    );
+
+    return;
+
+  }
+
+
+  google.script.run
+
+    .withSuccessHandler(
+      function() {
+
+        closeModal();
+
+        reloadData();
+
+        alert(
+          "Task added successfully."
+        );
+
+      }
+    )
+
+    .withFailureHandler(
+      function(error) {
+
+        if (handleKryptonAuthFailure(error)) return;
+
+        alert(
+          error.message
+        );
+
+      }
+    )
+
+    .addRecord(
+      getKryptonToken(),
+      "Tasks",
+      data
+    );
+
+}
+
+
+/* =========================
+   TEAM
+========================= */
+
+function renderTeam() {
+
+  document
+    .getElementById(
+      "content"
+    )
+    .innerHTML = `
+
+      <div class="section">
+
+        <div class="sectionHeader">
+
+          <h2>
+            Team
+          </h2>
+
+          <button
+            class="addBtn"
+            onclick="openTeamModal()"
+          >
+            + Add Member
+          </button>
+
+        </div>
+
+
+        <div class="tableWrap">
+
+          <table>
+
+            <thead>
+
+              <tr>
+
+                <th>
+                  Name
+                </th>
+
+                <th>
+                  Role
+                </th>
+
+                <th>
+                  Phone
+                </th>
+
+                <th>
+                  Email
+                </th>
+
+                <th>
+                  Status
+                </th>
+
+              </tr>
+
+            </thead>
+
+
+            <tbody>
+
+              ${
+                appData.team
+                  .map(
+                    member => `
+
+                      <tr>
+
+                        <td>
+                          ${
+                            member[
+                              "Name"
+                            ] ||
+                            "-"
+                          }
+                        </td>
+
+                        <td>
+                          ${
+                            member[
+                              "Role"
+                            ] ||
+                            "-"
+                          }
+                        </td>
+
+                        <td>
+                          ${
+                            member[
+                              "Phone"
+                            ] ||
+                            "-"
+                          }
+                        </td>
+
+                        <td>
+                          ${
+                            member[
+                              "Email"
+                            ] ||
+                            "-"
+                          }
+                        </td>
+
+                        <td>
+                          ${
+                            member[
+                              "Status"
+                            ] ||
+                            "-"
+                          }
+                        </td>
+
+                      </tr>
+
+                    `
+                  )
+                  .join("")
+              }
+
+            </tbody>
+
+          </table>
+
+        </div>
+
+      </div>
+
+  `;
+
+}
+
+
+function openTeamModal() {
+
+  document
+    .getElementById(
+      "modalTitle"
+    )
+    .innerText =
+      "Add Team Member";
+
+
+  document
+    .getElementById(
+      "modalContent"
+    )
+    .innerHTML = `
+
+      <div class="formGrid">
+
+        <div class="formGroup">
+
+          <label>
+            Name
+          </label>
+
+          <input
+            id="teamName"
+          >
+
+        </div>
+
+
+        <div class="formGroup">
+
+          <label>
+            Role
+          </label>
+
+          <input
+            id="teamRole"
+          >
+
+        </div>
+
+
+        <div class="formGroup">
+
+          <label>
+            Phone
+          </label>
+
+          <input
+            id="teamPhone"
+          >
+
+        </div>
+
+
+        <div class="formGroup">
+
+          <label>
+            Email
+          </label>
+
+          <input
+            id="teamEmail"
+            type="email"
+          >
+
+        </div>
+
+
+        <div class="formGroup">
+
+          <label>
+            Status
+          </label>
+
+          <select id="teamStatus">
+
+            <option>
+              Active
+            </option>
+
+            <option>
+              Inactive
+            </option>
+
+          </select>
+
+        </div>
+
+      </div>
+
+
+      <div class="modalActions">
+
+        <button
+          class="cancelBtn"
+          onclick="closeModal()"
+        >
+          Cancel
+        </button>
+
+        <button
+          class="saveBtn"
+          onclick="saveTeam()"
+        >
+          Save Member
+        </button>
+
+      </div>
+
+  `;
+
+
+  openModal();
+
+}
+
+
+function saveTeam() {
+
+  const data = {
+
+    "Member ID":
+      "MEM-" +
+      Date.now(),
+
+    "Name":
+      document
+        .getElementById(
+          "teamName"
+        )
+        .value,
+
+    "Role":
+      document
+        .getElementById(
+          "teamRole"
+        )
+        .value,
+
+    "Phone":
+      document
+        .getElementById(
+          "teamPhone"
+        )
+        .value,
+
+    "Email":
+      document
+        .getElementById(
+          "teamEmail"
+        )
+        .value,
+
+    "Status":
+      document
+        .getElementById(
+          "teamStatus"
+        )
+        .value
+
+  };
+
+
+  if (
+    !data["Name"]
+  ) {
+
+    alert(
+      "Please enter name."
+    );
+
+    return;
+
+  }
+
+
+  google.script.run
+
+    .withSuccessHandler(
+      function() {
+
+        closeModal();
+
+        reloadData();
+
+        alert(
+          "Team member added."
+        );
+
+      }
+    )
+
+    .withFailureHandler(
+      function(error) {
+
+        if (handleKryptonAuthFailure(error)) return;
+
+        alert(
+          error.message
+        );
+
+      }
+    )
+
+    .addRecord(
+      getKryptonToken(),
+      "Team",
+      data
+    );
+
+}
+
+
+/* =========================
+   PAYMENTS
+========================= */
+
+function renderPayments() {
+
+  document
+    .getElementById(
+      "content"
+    )
+    .innerHTML = `
+
+      <div class="section">
+
+        <div class="sectionHeader">
+
+          <h2>
+            Payments
+          </h2>
+
+          <button
+            class="addBtn"
+            onclick="openPaymentModal()"
+          >
+            + Add Payment
+          </button>
+
+        </div>
+
+
+        <div class="tableWrap">
+
+          <table>
+
+            <thead>
+
+              <tr>
+
+                <th>
+                  Client
+                </th>
+
+                <th>
+                  Project
+                </th>
+
+                <th>
+                  Amount
+                </th>
+
+                <th>
+                  Due Date
+                </th>
+
+                <th>
+                  Status
+                </th>
+
+              </tr>
+
+            </thead>
+
+
+            <tbody>
+
+              ${
+                appData.payments
+                  .map(
+                    payment => `
+
+                      <tr>
+
+                        <td>
+                          ${
+                            payment[
+                              "Client ID"
+                            ] ||
+                            "-"
+                          }
+                        </td>
+
+                        <td>
+                          ${
+                            payment[
+                              "Project ID"
+                            ] ||
+                            "-"
+                          }
+                        </td>
+
+                        <td>
+                          ₹${
+                            Number(
+                              payment[
+                                "Amount"
+                              ] ||
+                              0
+                            )
+                            .toLocaleString(
+                              "en-IN"
+                            )
+                          }
+                        </td>
+
+                        <td>
+                          ${
+                            payment[
+                              "Due Date"
+                            ] ||
+                            "-"
+                          }
+                        </td>
+
+                        <td>
+                          ${
+                            payment[
+                              "Status"
+                            ] ||
+                            "-"
+                          }
+                        </td>
+
+                      </tr>
+
+                    `
+                  )
+                  .join("")
+              }
+
+            </tbody>
+
+          </table>
+
+        </div>
+
+      </div>
+
+  `;
+
+}
+
+
+function openPaymentModal() {
+
+  const clientOptions =
+    appData.clients
+      .map(
+        c => `
+
+          <option
+            value="${
+              c["Client ID"] || ""
+            }"
+          >
+            ${
+              c["Client Name"] ||
+              c["Client ID"] ||
+              ""
+            }
+          </option>
+
+        `
+      )
+      .join("");
+
+
+  document
+    .getElementById(
+      "modalTitle"
+    )
+    .innerText =
+      "Add Payment";
+
+
+  document
+    .getElementById(
+      "modalContent"
+    )
+    .innerHTML = `
+
+      <div class="formGrid">
+
+        <div class="formGroup">
+
+          <label>
+            Client
+          </label>
+
+          <select
+            id="paymentClient"
+            onchange="updateProjectOptions('paymentClient','paymentProject')"
+          >
+
+            <option value="">
+              Select Client
+            </option>
+
+            ${clientOptions}
+
+          </select>
+
+        </div>
+
+
+        <div class="formGroup">
+
+          <label>
+            Project
+          </label>
+
+          <select
+            id="paymentProject"
+          >
+
+            <option value="">
+              Select Project
+            </option>
+
+          </select>
+
+        </div>
+
+
+        <div class="formGroup">
+
+          <label>
+            Amount
+          </label>
+
+          <input
+            id="paymentAmount"
+            type="number"
+          >
+
+        </div>
+
+
+        <div class="formGroup">
+
+          <label>
+            Payment Date
+          </label>
+
+          <input
+            id="paymentDate"
+            type="date"
+          >
+
+        </div>
+
+
+        <div class="formGroup">
+
+          <label>
+            Due Date
+          </label>
+
+          <input
+            id="paymentDue"
+            type="date"
+          >
+
+        </div>
+
+
+        <div class="formGroup">
+
+          <label>
+            Status
+          </label>
+
+          <select id="paymentStatus">
+
+            <option>
+              Pending
+            </option>
+
+            <option>
+              Paid
+            </option>
+
+            <option>
+              Overdue
+            </option>
+
+          </select>
+
+        </div>
+
+
+        <div class="formGroup full">
+
+          <label>
+            Notes
+          </label>
+
+          <textarea
+            id="paymentNotes"
+          ></textarea>
+
+        </div>
+
+      </div>
+
+
+      <div class="modalActions">
+
+        <button
+          class="cancelBtn"
+          onclick="closeModal()"
+        >
+          Cancel
+        </button>
+
+        <button
+          class="saveBtn"
+          onclick="savePayment()"
+        >
+          Save Payment
+        </button>
+
+      </div>
+
+  `;
+
+
+  openModal();
+
+}
+
+
+function savePayment() {
+
+  const data = {
+
+    "Payment ID":
+      "PAY-" +
+      Date.now(),
+
+    "Client ID":
+      document
+        .getElementById(
+          "paymentClient"
+        )
+        .value,
+
+    "Project ID":
+      document
+        .getElementById(
+          "paymentProject"
+        )
+        .value,
+
+    "Amount":
+      document
+        .getElementById(
+          "paymentAmount"
+        )
+        .value,
+
+    "Payment Date":
+      document
+        .getElementById(
+          "paymentDate"
+        )
+        .value,
+
+    "Due Date":
+      document
+        .getElementById(
+          "paymentDue"
+        )
+        .value,
+
+    "Status":
+      document
+        .getElementById(
+          "paymentStatus"
+        )
+        .value,
+
+    "Notes":
+      document
+        .getElementById(
+          "paymentNotes"
+        )
+        .value
+
+  };
+
+
+  if (
+    !data["Client ID"] ||
+    !data["Amount"]
+  ) {
+
+    alert(
+      "Client and amount are required."
+    );
+
+    return;
+
+  }
+
+
+  google.script.run
+
+    .withSuccessHandler(
+      function() {
+
+        closeModal();
+
+        reloadData();
+
+        alert(
+          "Payment added."
+        );
+
+      }
+    )
+
+    .withFailureHandler(
+      function(error) {
+
+        if (handleKryptonAuthFailure(error)) return;
+
+        alert(
+          error.message
+        );
+
+      }
+    )
+
+    .addRecord(
+      getKryptonToken(),
+      "Payments",
+      data
+    );
+
+}
+
+
+/* =========================
+   REPORTS
+========================= */
+
+function renderReports() {
+
+  const content =
+    document.getElementById("content");
+
+  const clientName =
+    clientId => {
+      const client =
+        appData.clients.find(
+          c => c["Client ID"] === clientId
+        );
+      return client
+        ? (client["Client Name"] || clientId)
+        : (clientId || "-");
+    };
+
+  content.innerHTML = `
+
+    <div class="section">
+
+      <div class="sectionHeader">
+
+        <h2>Reports</h2>
+
+        <button
+          class="addBtn"
+          onclick="openReportModal()"
+        >
+          + Add Report
+        </button>
+
+      </div>
+
+      <div class="tableWrap">
+
+        <table>
+
+          <thead>
+            <tr>
+              <th>Client</th>
+              <th>Month</th>
+              <th>Summary</th>
+              <th>Report</th>
+            </tr>
+          </thead>
+
+          <tbody>
+
+            ${
+              (appData.reports || [])
+                .slice()
+                .reverse()
+                .map(report => `
+
+                  <tr>
+
+                    <td>
+                      <strong>
+                        ${clientName(report["Client ID"])}
+                      </strong>
+                    </td>
+
+                    <td>
+                      ${report["Month"] || "-"}
+                    </td>
+
+                    <td>
+                      ${report["Summary"] || "-"}
+                    </td>
+
+                    <td>
+                      ${
+                        report["Report URL"]
+                          ? `
+                            <a
+                              href="${report["Report URL"]}"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                            >
+                              Open
+                            </a>
+                          `
+                          : "-"
+                      }
+                    </td>
+
+                  </tr>
+
+                `)
+                .join("")
+            }
+
+          </tbody>
+
+        </table>
+
+      </div>
+
+      ${
+        (!appData.reports || appData.reports.length === 0)
+          ? `
+            <div style="padding:30px;text-align:center;color:#777;">
+              No reports added yet.
+            </div>
+          `
+          : ""
+      }
+
+    </div>
+
+  `;
+
+}
+
+
+function openReportModal() {
+
+  const clientOptions =
+    (appData.clients || [])
+      .map(
+        client => `
+          <option value="${client["Client ID"] || ""}">
+            ${client["Client Name"] || client["Client ID"] || ""}
+          </option>
+        `
+      )
+      .join("");
+
+  document.getElementById("modalTitle").innerText =
+    "Add Report";
+
+  document.getElementById("modalContent").innerHTML = `
+
+    <div class="formGrid">
+
+      <div class="formGroup">
+        <label>Client</label>
+        <select id="reportClient">
+          <option value="">Select Client</option>
+          ${clientOptions}
+        </select>
+      </div>
+
+      <div class="formGroup">
+        <label>Month</label>
+        <input
+          id="reportMonth"
+          type="month"
+        >
+      </div>
+
+      <div class="formGroup full">
+        <label>Summary</label>
+        <textarea
+          id="reportSummary"
+          placeholder="Monthly work, results, highlights..."
+        ></textarea>
+      </div>
+
+      <div class="formGroup full">
+        <label>Report URL</label>
+        <input
+          id="reportURL"
+          type="url"
+          placeholder="Google Drive / PDF / Canva / other link"
+        >
+      </div>
+
+    </div>
+
+    <div class="modalActions">
+
+      <button
+        class="cancelBtn"
+        onclick="closeModal()"
+      >
+        Cancel
+      </button>
+
+      <button
+        class="saveBtn"
+        onclick="saveReport()"
+      >
+        Save Report
+      </button>
+
+    </div>
+
+  `;
+
+  openModal();
+
+}
+
+
+function saveReport() {
+
+  const clientId =
+    document.getElementById("reportClient").value;
+
+  const month =
+    document.getElementById("reportMonth").value;
+
+  const summary =
+    document.getElementById("reportSummary").value.trim();
+
+  const reportURL =
+    document.getElementById("reportURL").value.trim();
+
+  if (!clientId) {
+    alert("Please select a client.");
+    return;
+  }
+
+  if (!month) {
+    alert("Please select the report month.");
+    return;
+  }
+
+  const data = {
+    "Report ID": "RPT-" + Date.now(),
+    "Client ID": clientId,
+    "Month": month,
+    "Summary": summary,
+    "Report URL": reportURL
+  };
+
+  google.script.run
+    .withSuccessHandler(
+      function() {
+
+        closeModal();
+
+        reloadData();
+
+        alert("Report added successfully.");
+
+      }
+    )
+    .withFailureHandler(
+      function(error) {
+
+        if (handleKryptonAuthFailure(error)) return;
+
+        alert(
+          "Could not save report:\n" +
+          error.message
+        );
+
+      }
+    )
+    .addRecord(
+      getKryptonToken(),
+      "Reports",
+      data
+    );
+
+}
+
+
+/* =========================
+   SETTINGS
+========================= */
+
+function renderSettings() {
+
+  document
+    .getElementById(
+      "content"
+    )
+    .innerHTML = `
+
+      <div class="section">
+
+        <div class="sectionHeader">
+          <h2>Settings</h2>
+        </div>
+
+        <div style="padding:22px;line-height:2;font-size:14px;">
+          <strong>Company:</strong> KRYPTON
+          <br>
+          <strong>Application:</strong> KRYPTON Admin
+          <br>
+          <strong>Currency:</strong> INR
+        </div>
+
+      </div>
+
+      <div class="section backupSection">
+        <div class="sectionHeader">
+          <div>
+            <h2 style="margin-bottom:4px;">Data Backup</h2>
+            <div class="backupSubtext">Create a complete copy of your KRYPTON Admin spreadsheet.</div>
+          </div>
+          <button class="addBtn backupBtn" id="backupBtn" onclick="createKryptonBackup()">
+            ↥ Create Backup
+          </button>
+        </div>
+
+        <div class="backupInfo">
+          <span class="backupDot"></span>
+          Backup includes all sheets and current data. Your original spreadsheet is not changed.
+        </div>
+      </div>
+
+  `;
+
+}
+
+
+function createKryptonBackup() {
+
+  const button = document.getElementById("backupBtn");
+
+  if (!button) return;
+
+  button.disabled = true;
+  button.innerText = "Creating Backup…";
+
+  google.script.run
+    .withSuccessHandler(function(result) {
+
+      button.disabled = false;
+      button.innerText = "↥ Create Backup";
+
+      if (result && result.success) {
+        alert(
+          "Backup created successfully.\n\n" +
+          result.name +
+          "\n\nYou can find it in Google Drive."
+        );
+      } else {
+        alert(
+          (result && result.message) ||
+          "Could not create backup."
+        );
+      }
+
+    })
+    .withFailureHandler(function(error) {
+
+      button.disabled = false;
+      button.innerText = "↥ Create Backup";
+
+      alert(
+        "Backup failed:\n" +
+        (error && error.message ? error.message : error)
+      );
+
+    })
+    .createKryptonBackup(getKryptonToken());
+
+}
+
+
+
+/* =========================
+   MODAL
+========================= */
+
+function openModal() {
+
+  document
+    .getElementById(
+      "modal"
+    )
+    .style.display =
+      "flex";
+
+}
+
+
+function closeModal() {
+
+  document
+    .getElementById(
+      "modal"
+    )
+    .style.display =
+      "none";
+
+}
+
+
+/* =========================
+   RELOAD DATA
+========================= */
+
+function reloadData() {
+
+  google.script.run
+
+    .withSuccessHandler(
+      function(data) {
+
+        appData =
+          data || appData;
+
+        showPage(
+          currentPage
+        );
+
+      }
+    )
+
+    .withFailureHandler(
+      function(error) {
+
+        if (handleKryptonAuthFailure(error)) return;
+
+        alert(
+          error.message
+        );
+
+      }
+    )
+
+    .getAppData(
+      getKryptonToken()
+    );
+
+}
+
+
+/* =========================
+   MOBILE SIDEBAR
+========================= */
+
+function toggleSidebar() {
+
+  document
+    .getElementById(
+      "sidebar"
+    )
+    .classList
+    .toggle(
+      "open"
+    );
+
+}
+
+
+/* =========================
+   SESSION CHECK
+========================= */
+
+
+/* =========================================================
+   LOGIN SESSION UX
+========================================================= */
+
+const KRYPTON_SESSION_LIMIT = 8 * 60 * 60 * 1000; // 8 hours
+
+function kryptonSessionIsValid() {
+  const loggedIn =
+    sessionStorage.getItem("kryptonLoggedIn");
+
+  const loginAt =
+    Number(
+      sessionStorage.getItem("kryptonLoginAt") || 0
+    );
+
+  if (loggedIn !== "true" || !loginAt) {
+    return false;
+  }
+
+  return (
+    Date.now() - loginAt <
+    KRYPTON_SESSION_LIMIT
+  );
+}
+
+function kryptonForceLogout(message) {
+
+  sessionStorage.removeItem("kryptonLoggedIn");
+  sessionStorage.removeItem("kryptonLoginAt");
+  sessionStorage.removeItem("kryptonUserEmail");
+  sessionStorage.removeItem("kryptonToken");
+
+  const app =
+    document.getElementById("app");
+
+  const loginScreen =
+    document.getElementById("loginScreen");
+
+  if (app) app.style.display = "none";
+  if (loginScreen) loginScreen.style.display = "flex";
+
+  if (message) {
+    showLoginError(message);
+  }
+}
+
+document.addEventListener(
+  "DOMContentLoaded",
+  function() {
+
+    const password =
+      document.getElementById("loginPassword");
+
+    const email =
+      document.getElementById("loginEmail");
+
+    [email, password].forEach(
+      function(input) {
+
+        if (!input) return;
+
+        input.addEventListener(
+          "keydown",
+          function(event) {
+
+            if (
+              event.key === "Enter"
+            ) {
+              event.preventDefault();
+              login();
+            }
+          }
+        );
+
+      }
+    );
+
+  }
+);
+
+window.onload =
+  function() {
+
+    const loggedIn =
+      sessionStorage
+        .getItem(
+          "kryptonLoggedIn"
+        );
+
+    if (
+      loggedIn === "true" &&
+      kryptonSessionIsValid() &&
+      getKryptonToken()
+    ) {
+
+      document
+        .getElementById(
+          "loginScreen"
+        )
+        .style.display =
+          "none";
+
+      document
+        .getElementById(
+          "app"
+        )
+        .style.display =
+          "block";
+
+      loadApp();
+
+    }
+
+  };
+
+
+
+/* =========================================================
+   KRYPTON 3D MICRO-INTERACTIONS
+========================================================= */
+
+(function(){
+
+  function addKryptonDepth(){
+
+    const selectors = [
+      ".statCard",
+      ".summaryCard",
+      ".dashboardCard",
+      ".card"
+    ];
+
+    document
+      .querySelectorAll(selectors.join(","))
+      .forEach(function(card){
+
+        if(card.dataset.krypton3d === "1"){
+          return;
+        }
+
+        card.dataset.krypton3d = "1";
+
+        card.addEventListener("mousemove",function(e){
+
+          if(window.innerWidth < 800){
+            return;
+          }
+
+          const rect =
+            card.getBoundingClientRect();
+
+          const x =
+            (e.clientX - rect.left) /
+            rect.width;
+
+          const y =
+            (e.clientY - rect.top) /
+            rect.height;
+
+          const rotateY =
+            (x - .5) * 3;
+
+          const rotateX =
+            (.5 - y) * 3;
+
+          card.style.transform =
+            "translateY(-5px) " +
+            "rotateX(" + rotateX + "deg) " +
+            "rotateY(" + rotateY + "deg)";
+
+        });
+
+        card.addEventListener("mouseleave",function(){
+
+          card.style.transform = "";
+
+        });
+
+      });
+
+  }
+
+
+  /*
+   * Dashboard content is dynamically rendered,
+   * so observe DOM changes.
+   */
+
+  const observer =
+    new MutationObserver(
+      function(){
+        addKryptonDepth();
+      }
+    );
+
+
+  function start(){
+
+    const content =
+      document.getElementById("content");
+
+    if(content){
+
+      observer.observe(
+        content,
+        {
+          childList:true,
+          subtree:true
+        }
+      );
+
+    }
+
+    addKryptonDepth();
+
+  }
+
+
+  if(
+    document.readyState === "loading"
+  ){
+
+    document.addEventListener(
+      "DOMContentLoaded",
+      start
+    );
+
+  }else{
+
+    start();
+
+  }
+
+})();
+
+
+/* =========================
+   GLOBAL SEARCH + STATUS FILTER
+========================= */
+function refreshGlobalFilter(){
+  const sel=document.getElementById("globalStatusFilter");
+  const input=document.getElementById("globalSearchInput");
+  if(!sel||!input)return;
+  const hiddenPages=["dashboard","settings"];
+  const show=!hiddenPages.includes(currentPage);
+  sel.style.display=show?"block":"none";
+  input.placeholder=show?"Search current page...":"Search...";
+  const values=[];
+  const source=Array.isArray(appData[currentPage])?appData[currentPage]:[];
+  source.forEach(row=>{
+    if(!row)return;
+    const s=String(row["Status"]||"").trim();
+    if(s&&!values.some(v=>v.toLowerCase()===s.toLowerCase()))values.push(s);
+  });
+  const old=sel.value;
+  sel.innerHTML='<option value="">All status</option>'+values.map(v=>`<option value="${escapeHtml(v)}">${escapeHtml(v)}</option>`).join("");
+  if(values.some(v=>v.toLowerCase()===old.toLowerCase()))sel.value=old;
+}
+
+function applyPageFilters(){
+  const q=(document.getElementById("globalSearchInput")?.value||"").trim().toLowerCase();
+  const status=(document.getElementById("globalStatusFilter")?.value||"").trim().toLowerCase();
+  const table=document.querySelector("#content table");
+  if(!table||currentPage==="dashboard"||currentPage==="settings")return;
+  table.querySelectorAll("tbody tr").forEach(tr=>{
+    const text=(tr.innerText||"").toLowerCase();
+    const statusMatch=!status||text.includes(status);
+    const searchMatch=!q||text.includes(q);
+    tr.style.display=(statusMatch&&searchMatch)?"":"none";
+  });
+}
+
+function clearPageFilters(){
+  const i=document.getElementById("globalSearchInput");
+  const s=document.getElementById("globalStatusFilter");
+  if(i)i.value="";
+  if(s)s.value="";
+}
+
+
+/* KRYPTON DATA REFRESH */
+function refreshKryptonData(){
+
+  const button =
+    document.getElementById("kryptonRefreshButton");
+
+  if (button) {
+    button.classList.add("isRefreshing");
+    button.disabled = true;
+  }
+
+  try {
+
+    if (typeof reloadData === "function") {
+
+      reloadData();
+
+      setTimeout(function(){
+        if (button) {
+          button.classList.remove("isRefreshing");
+          button.disabled = false;
+        }
+      }, 900);
+
+      return;
+    }
+
+    // Fallback: reload the current web app page.
+    window.location.reload();
+
+  } catch (error) {
+
+    console.error(
+      "KRYPTON refresh error:",
+      error
+    );
+
+    if (button) {
+      button.classList.remove("isRefreshing");
+      button.disabled = false;
+    }
+
+    window.location.reload();
+  }
+}
+
+</script>
 
 </body>
 </html>
