@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KRYPTON Manage</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Arial, sans-serif;
+      background: #f5f7f6;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .box {
+      width: min(420px, 92%);
+      background: white;
+      padding: 35px;
+      border-radius: 18px;
+      box-shadow: 0 15px 45px rgba(0,0,0,.10);
+      text-align: center;
+    }
+
+    .logo {
+      font-size: 30px;
+      font-weight: 800;
+      margin-bottom: 10px;
+    }
+
+    .logo span {
+      color: #9cff00;
+    }
+
+    button {
+      width: 100%;
+      padding: 13px;
+      border: 0;
+      border-radius: 10px;
+      background: #111;
+      color: white;
+      font-weight: 700;
+      cursor: pointer;
+      margin-top: 20px;
+    }
+
+    #status {
+      margin-top: 18px;
+      font-size: 14px;
+      color: #666;
+      word-break: break-word;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="box">
+
+    <div class="logo">
+      <span>K</span>RYPTON
+    </div>
+
+    <h2>Manage</h2>
+
+    <p>GitHub frontend API test</p>
+
+    <button onclick="testAPI()">
+      Test Connection
+    </button>
+
+    <div id="status">
+      Ready
+    </div>
+
+  </div>
+
+
+  <script>
+
+    const API_URL =
+      "https://script.google.com/macros/s/AKfycbwoAe6kB_0Mj-NxLZodKkvHok4kGkgc2MLi6CJ5bjV-m85zXD0c9K7YRczSyAhbRDFW/exec";
+
+
+    function testAPI() {
+
+      document.getElementById("status").innerText =
+        "Connecting...";
+
+
+      const form =
+        document.createElement("form");
+
+      form.method = "POST";
+      form.action = API_URL;
+      form.target = "krypton_api_frame";
+
+
+      const origin =
+        document.createElement("input");
+
+      origin.type = "hidden";
+      origin.name = "origin";
+      origin.value =
+        "https://infokryptonteam.github.io";
+
+
+      const action =
+        document.createElement("input");
+
+      action.type = "hidden";
+      action.name = "action";
+      action.value = "getAppData";
+
+
+      const payload =
+        document.createElement("input");
+
+      payload.type = "hidden";
+      payload.name = "payload";
+
+      payload.value =
+        JSON.stringify({
+          token:
+            localStorage.getItem(
+              "krypton_token"
+            )
+        });
+
+
+      form.appendChild(origin);
+      form.appendChild(action);
+      form.appendChild(payload);
+
+      document.body.appendChild(form);
+
+      form.submit();
+
+      form.remove();
+
+    }
+
+
+    window.addEventListener(
+      "message",
+      function(event) {
+
+        if (
+          event.data &&
+          event.data.type ===
+            "KRYPTON_API_RESPONSE"
+        ) {
+
+          console.log(
+            "API RESPONSE:",
+            event.data.response
+          );
+
+          document.getElementById(
+            "status"
+          ).innerText =
+            JSON.stringify(
+              event.data.response
+            );
+
+        }
+
+      }
+    );
+
+  </script>
+
+
+  <iframe
+    name="krypton_api_frame"
+    style="display:none;">
+  </iframe>
+
+</body>
+</html>
