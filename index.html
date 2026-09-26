@@ -1534,89 +1534,60 @@ body{background:#f4f6f5!important;overflow-x:hidden;}
 <script id="krypton-github-bridge">
 (function () {
   const API_URL = "https://script.google.com/macros/s/AKfycbwoAe6kB_0Mj-NxLZodKkvHok4kGkgc2MLi6CJ5bjV-m85zXD0c9K7YRczSyAhbRDFW/exec";
-  const ORIGIN = "https://infokryptonteam.github.io";
-  const pending = Object.create(null);
 
   function makeRequest(action, args, success, failure) {
-    const requestId = "krypton_" + Date.now() + "_" + Math.random().toString(36).slice(2);
-    pending[requestId] = { success: success, failure: failure };
+    const callbackName = "kryptonCallback_" + Date.now() + "_" + Math.random().toString(36).slice(2);
+    let finished = false;
 
-    const frameName = "krypton_api_" + requestId.replace(/[^a-zA-Z0-9_]/g, "_");
-    const iframe = document.createElement("iframe");
-    iframe.name = frameName;
-    iframe.id = frameName;
-    iframe.style.display = "none";
-    document.body.appendChild(iframe);
+    window[callbackName] = function (response) {
+      if (finished) return;
+      finished = true;
+      try { delete window[callbackName]; } catch (e) {}
+      if (script && script.parentNode) script.parentNode.removeChild(script);
 
-    const form = document.createElement("form");
-    form.method = "POST";
-    form.action = API_URL;
-    form.target = frameName;
-    form.style.display = "none";
+      if (!response || response.success === false) {
+        if (failure) failure({ message: (response && response.message) || "API request failed." });
+        return;
+      }
+      if (success) success(response.data);
+    };
 
-    function add(name, value) {
-      const input = document.createElement("input");
-      input.type = "hidden";
-      input.name = name;
-      input.value = value == null ? "" : String(value);
-      form.appendChild(input);
-    }
+    const script = document.createElement("script");
+    script.async = true;
+    script.src = API_URL + "?action=" + encodeURIComponent(action) +
+      "&payload=" + encodeURIComponent(JSON.stringify(args || {})) +
+      "&callback=" + encodeURIComponent(callbackName) +
+      "&_=" + Date.now();
 
-    add("origin", ORIGIN);
-    add("action", action);
-    add("requestId", requestId);
-    add("payload", JSON.stringify(args || {}));
+    script.onerror = function () {
+      if (finished) return;
+      finished = true;
+      try { delete window[callbackName]; } catch (e) {}
+      if (script.parentNode) script.parentNode.removeChild(script);
+      if (failure) failure({ message: "Unable to connect to KRYPTON API." });
+    };
 
-    document.body.appendChild(form);
-    form.submit();
-    form.remove();
+    document.head.appendChild(script);
 
     setTimeout(function () {
-      if (pending[requestId]) {
-        const p = pending[requestId];
-        delete pending[requestId];
-        if (p.failure) p.failure({ message: "API request timed out. Check Apps Script deployment and access settings." });
-        if (iframe.parentNode) iframe.parentNode.removeChild(iframe);
-      }
+      if (finished) return;
+      finished = true;
+      try { delete window[callbackName]; } catch (e) {}
+      if (script.parentNode) script.parentNode.removeChild(script);
+      if (failure) failure({ message: "API request timed out." });
     }, 30000);
   }
-
-  window.addEventListener("message", function (event) {
-    const data = event && event.data;
-    if (!data || data.type !== "KRYPTON_API_RESPONSE") return;
-
-    const requestId = data.requestId;
-    const p = pending[requestId];
-    if (!p) return;
-    delete pending[requestId];
-
-    const response = data.response || {};
-    const iframe = document.getElementById("krypton_api_" + String(requestId).replace(/[^a-zA-Z0-9_]/g, "_"));
-    if (iframe && iframe.parentNode) iframe.parentNode.removeChild(iframe);
-
-    if (response.success === false) {
-      if (p.failure) p.failure({ message: response.message || "API request failed." });
-      return;
-    }
-
-    // Apps Script bridge returns {success:true, data:<actual function result>}
-    if (p.success) p.success(response.data);
-  });
 
   function runner() {
     let success = null;
     let failure = null;
+
     const api = new Proxy({}, {
       get: function (_, method) {
-        if (method === "withSuccessHandler") {
-          return function (fn) { success = fn; return api; };
-        }
-        if (method === "withFailureHandler") {
-          return function (fn) { failure = fn; return api; };
-        }
-        if (method === "withUserObject") {
-          return function () { return api; };
-        }
+        if (method === "withSuccessHandler") return function (fn) { success = fn; return api; };
+        if (method === "withFailureHandler") return function (fn) { failure = fn; return api; };
+        if (method === "withUserObject") return function () { return api; };
+
         return function () {
           const args = Array.prototype.slice.call(arguments);
           let payload = {};
@@ -1643,14 +1614,13 @@ body{background:#f4f6f5!important;overflow-x:hidden;}
         };
       }
     });
+
     return api;
   }
 
   window.google = window.google || {};
   window.google.script = window.google.script || {};
   window.google.script.run = runner();
-
-  // Useful diagnostic in DevTools console.
   window.KRYPTON_GITHUB_API = { url: API_URL };
 })();
 </script>
