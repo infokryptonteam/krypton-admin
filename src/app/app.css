@@ -1,0 +1,25 @@
+:host { display: block; min-height: 100vh; }
+.topbarHeading { display: flex; align-items: center; gap: 14px; min-width: max-content; }
+.navItem { width: calc(100% - 24px); border: 0; background: transparent; text-align: left; font: inherit; }
+.exportBtn { min-height: 38px; display: inline-flex; align-items: center; justify-content: center; gap: 7px; padding: 0 13px; border: 1px solid #dfe4df; border-radius: 10px; background: #b8ff35; color: #101214; font-size: 13px; font-weight: 750; cursor: pointer; white-space: nowrap; }
+.exportBtn:disabled { opacity: .55; cursor: not-allowed; }
+.exportBtn:not(:disabled):hover { filter: brightness(.96); }
+.loginError, .appError, .appNotice { padding: 12px 14px; border-radius: 9px; font-size: 13px; line-height: 1.5; }
+.loginError { display: block; margin-top: 12px; color: #b42318; background: #fff1f0; }
+#loginError { display: block; }
+.appError { margin-bottom: 16px; border: 1px solid #f0b9b5; color: #9c2119; background: #fff6f5; }
+.appNotice { margin-bottom: 16px; border: 1px solid #c7df9e; color: #38550e; background: #f6fbef; }
+.modal.is-open { display: flex; }
+.emptyState, .emptyCell { padding: 28px; color: #777; text-align: center; }
+.overviewRows { display: grid; gap: 14px; padding: 20px; }
+.overviewRows > div { display: flex; justify-content: space-between; padding-bottom: 12px; border-bottom: 1px solid #eef0f2; }
+.overviewRows > div:last-child { padding-bottom: 0; border-bottom: 0; }
+.overviewRows span, .recentClients > div > span:last-child { color: #70757d; }
+.recentClients { padding: 8px 20px 14px; }
+.recentClients > div { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 0; border-bottom: 1px solid #eef0f2; }
+.recentClients small { display: block; margin-top: 3px; color: #8a8f96; }
+.settingsInfo { padding: 22px; font-size: 14px; line-height: 2; }
+.fieldError { display: block; margin-top: 5px; color: #b42318; font-size: 12px; }
+.modalActions button:disabled { opacity: .6; cursor: wait; }
+@media (max-width: 900px) { .topbarTools { gap: 7px; } }
+@media (max-width: 640px) { .exportBtn { width: 38px; min-width: 38px; padding: 0; } .exportBtn span { display: none; } }

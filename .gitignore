@@ -1,0 +1,97 @@
+# See https://docs.github.com/get-started/getting-started-with-git/ignoring-files for more about ignoring files.
+
+# Compiled output
+/dist
+/tmp
+/out-tsc
+/bazel-out
+
+# Node
+/node_modules
+npm-debug.log
+yarn-error.log
+
+# IDEs and editors
+.idea/
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
+
+# Visual Studio Code
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+!.vscode/mcp.json
+.history/*
+
+# Miscellaneous
+/.angular/cache
+.sass-cache/
+/connect.lock
+/coverage
+/libpeerconnection.log
+testem.log
+/typings
+__screenshots__/
+
+# Local environment values and secrets
+.env
+.env.*
+!.env.example
+!.env.*.example
+.dev.vars
+.dev.vars.*
+!.dev.vars.example
+.npmrc
+!.npmrc.example
+.netrc
+
+# Cloudflare local state and generated validation bundles
+.wrangler/
+.wrangler-test-build/
+
+# Credentials and private keys
+credentials/
+secrets/
+private/
+**/*credentials*.json
+**/*secret*.json
+**/service-account*.json
+**/service_account*.json
+**/firebase-adminsdk*.json
+**/application_default_credentials.json
+id_rsa*
+id_ed25519*
+*.pem
+*.key
+*.p12
+*.pfx
+*.ppk
+*.jks
+*.keystore
+*.mobileprovision
+
+# Local databases, backups, and potentially confidential exports
+*.db
+*.dump
+*.sqlite
+*.sqlite3
+*.csv
+*.xls
+*.xlsx
+*.jsonl
+exports/
+backups/
+
+# Logs
+*.log
+npm-debug.log*
+
+# System files
+.DS_Store
+Thumbs.db

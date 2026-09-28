@@ -1,0 +1,161 @@
+@if (!authenticated) {
+  <main id="loginScreen">
+    <form class="loginBox" [formGroup]="loginForm" (ngSubmit)="submitLogin()" novalidate>
+      <div class="brand">
+        <div class="brandLogo" aria-hidden="true">K</div>
+        <h1>KRYPTON Admin</h1>
+        <p>Manage your business in one place</p>
+      </div>
+      <div class="formGroup">
+        <label for="loginEmail">Email</label>
+        <input id="loginEmail" type="email" formControlName="email" placeholder="Enter email" autocomplete="username" required>
+      </div>
+      <div class="formGroup">
+        <label for="loginPassword">Password</label>
+        <div class="passwordWrap">
+          <input id="loginPassword" [type]="passwordVisible ? 'text' : 'password'" formControlName="password" placeholder="Enter password" autocomplete="current-password" required>
+          <button class="passwordToggle" type="button" (click)="togglePassword()" [attr.aria-label]="passwordVisible ? 'Hide password' : 'Show password'">{{ passwordVisible ? 'Hide' : 'Show' }}</button>
+        </div>
+      </div>
+      <button class="primaryBtn" id="loginButton" type="submit" [disabled]="loginBusy">{{ loginBusy ? 'Signing in...' : 'Login' }}</button>
+      @if (loginError) { <p id="loginError" class="loginError is-visible" role="alert">{{ loginError }}</p> }
+    </form>
+  </main>
+} @else {
+  <div id="app" class="is-visible">
+    <aside class="sidebar" [class.open]="sidebarOpen" aria-label="Main navigation">
+      <div class="sideBrand"><span>K</span> KRYPTON</div>
+      @for (page of pages; track page.id) {
+        <button class="navItem" type="button" [class.active]="activePage === page.id" [attr.aria-current]="activePage === page.id ? 'page' : null" (click)="showPage(page.id)">{{ page.label }}</button>
+      }
+      <button class="logout" type="button" (click)="logout()">Logout</button>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div class="topbarHeading">
+          <button class="mobileMenu" type="button" (click)="toggleSidebar()" [attr.aria-expanded]="sidebarOpen" aria-label="Toggle navigation">☰</button>
+          <span class="pageTitle">{{ currentPage.label }}</span>
+        </div>
+        <div class="topbarTools">
+          <button class="refreshBtn" type="button" (click)="refreshData()" [disabled]="dataLoading" title="Refresh data" aria-label="Refresh data">↻ <span>Refresh</span></button>
+          <label class="globalSearch"><span aria-hidden="true">⌕</span><input type="search" [(ngModel)]="searchQuery" [ngModelOptions]="{standalone:true}" placeholder="Search current page..." aria-label="Search current page"></label>
+          @if (activePage !== 'dashboard' && activePage !== 'settings') {
+            <select class="globalFilter" [(ngModel)]="statusFilter" [ngModelOptions]="{standalone:true}" aria-label="Filter by status">
+              <option value="">All status</option>
+              @for (status of statusOptions; track status) { <option [value]="status">{{ status }}</option> }
+            </select>
+          }
+          <button class="exportBtn" type="button" (click)="exportCsv()" [disabled]="!exportRows.length" title="Download current view as CSV">⇩ <span>Export to CSV</span></button>
+          <div class="userBadge" [title]="userEmail">{{ userEmail || 'KRYPTON Admin' }}</div>
+        </div>
+      </header>
+
+      <section class="content" id="content" aria-live="polite">
+        @if (appError) { <div class="appError" role="alert">{{ appError }}</div> }
+        @if (notice) { <div class="appNotice" role="status">{{ notice }}</div> }
+        @if (dataLoading && !data.clients.length) { <div class="section emptyState">Loading workspace...</div> }
+
+        @if (activePage === 'dashboard') {
+          <div class="dashboardHero">
+            <div><h1>Good to see you, KRYPTON Admin.</h1><p>Keep your clients, projects and business operations under control.</p></div>
+            <div class="heroMark" aria-hidden="true">K</div>
+          </div>
+          <div class="cards">
+            @for (stat of dashboardStats; track stat.label) { <div class="card"><div class="cardLabel">{{ stat.label }}</div><div class="cardValue">{{ stat.value }}</div></div> }
+          </div>
+          <div class="quickGrid">
+            <button class="quickAction" type="button" (click)="openAddModal('clients')">+ Add Client<span>Create a new client record</span></button>
+            <button class="quickAction" type="button" (click)="openAddModal('projects')">+ Add Project<span>Start a client project</span></button>
+            <button class="quickAction" type="button" (click)="openAddModal('files')">+ Add File<span>Record a file or link</span></button>
+            <button class="quickAction" type="button" (click)="openAddModal('payments')">+ Add Payment<span>Record client billing</span></button>
+          </div>
+          <div class="dashboardGrid">
+            <div>
+              <section class="section">
+                <div class="sectionHeader"><h2>Recent Projects</h2></div>
+                <div class="tableWrap"><table><thead><tr><th>Project</th><th>Client</th><th>Status</th><th>Deadline</th></tr></thead>
+                  <tbody>@for (project of recentProjects; track $index) { <tr><td><strong>{{ cellValue(project, 'Project Name') }}</strong></td><td>{{ clientName(project['Client ID']) }}</td><td>{{ cellValue(project, 'Status') }}</td><td>{{ cellValue(project, 'Deadline') }}</td></tr> }
+                    @if (!recentProjects.length) { <tr><td colspan="4" class="emptyCell">No projects yet.</td></tr> }
+                  </tbody></table></div>
+              </section>
+              <section class="section">
+                <div class="sectionHeader"><h2>Recent Payments</h2></div>
+                <div class="tableWrap"><table><thead><tr><th>Client</th><th>Project</th><th>Amount</th><th>Status</th></tr></thead>
+                  <tbody>@for (payment of recentPayments; track $index) { <tr><td><strong>{{ clientName(payment['Client ID']) }}</strong></td><td>{{ projectName(payment['Project ID']) }}</td><td>₹{{ formatAmount(payment['Amount']) }}</td><td>{{ cellValue(payment, 'Status') }}</td></tr> }
+                    @if (!recentPayments.length) { <tr><td colspan="4" class="emptyCell">No payments yet.</td></tr> }
+                  </tbody></table></div>
+              </section>
+            </div>
+            <div>
+              <section class="section">
+                <div class="sectionHeader"><h2>Workspace Overview</h2></div>
+                <div class="overviewRows"><div><span>Project URLs</span><strong>{{ data.urls.length }}</strong></div><div><span>Reports</span><strong>{{ data.reports.length }}</strong></div><div><span>Tasks</span><strong>{{ data.tasks.length }}</strong></div><div><span>Files</span><strong>{{ data.files.length }}</strong></div></div>
+              </section>
+              <section class="section">
+                <div class="sectionHeader"><h2>Recent Clients</h2></div>
+                <div class="recentClients">@for (client of recentClients; track $index) { <div><span><strong>{{ cellValue(client, 'Client Name') }}</strong><small>{{ cellValue(client, 'Services') }}</small></span><span>{{ cellValue(client, 'Status') }}</span></div> }
+                  @if (!recentClients.length) { <p class="emptyCell">No clients yet.</p> }
+                </div>
+              </section>
+            </div>
+          </div>
+        } @else if (activePage === 'settings') {
+          <section class="section"><div class="sectionHeader"><h2>Settings</h2></div><div class="settingsInfo"><strong>Company:</strong> KRYPTON<br><strong>Application:</strong> KRYPTON Admin<br><strong>Currency:</strong> INR</div></section>
+          <section class="section backupSection">
+            <div class="sectionHeader"><div><h2>Data Backup</h2><div class="backupSubtext">Create a complete copy of your KRYPTON Admin spreadsheet.</div></div>
+              <button class="addBtn backupBtn" type="button" (click)="createBackup()" [disabled]="backupBusy">{{ backupBusy ? 'Creating Backup...' : '↥ Create Backup' }}</button>
+            </div>
+            <div class="backupInfo"><span class="backupDot"></span>Backup includes all sheets and current data. Your original spreadsheet is not changed.</div>
+          </section>
+        } @else {
+          <section class="section">
+            <div class="sectionHeader"><h2>{{ currentPage.id === 'urls' ? 'Project URLs' : currentPage.id === 'files' ? 'Project Files' : currentPage.label }}</h2>
+              @if (currentPage.addLabel) { <button class="addBtn" type="button" (click)="openAddModal()">+ {{ currentPage.addLabel }}</button> }
+            </div>
+            <div class="tableWrap"><table>
+              <thead><tr>@for (column of currentPage.columns || []; track column.key) { <th>{{ column.label }}</th> }</tr></thead>
+              <tbody>
+                @for (row of filteredRows; track $index) {
+                  <tr>@for (column of currentPage.columns || []; track column.key) {
+                    <td>@if (column.link && hasCellValue(row, column.key)) { <a [href]="cellValue(row, column.key)" target="_blank" rel="noopener noreferrer">Open</a> } @else { {{ cellValue(row, column.key) }} }</td>
+                  }</tr>
+                }
+                @if (!filteredRows.length) { <tr><td class="emptyCell" [attr.colspan]="currentPage.columns?.length || 1">{{ searchQuery || statusFilter ? 'No records match these filters.' : 'No records yet.' }}</td></tr> }
+              </tbody>
+            </table></div>
+          </section>
+        }
+      </section>
+    </main>
+  </div>
+}
+
+@if (modalPage) {
+  <div class="modal is-open" role="presentation" (click)="$event.target === $event.currentTarget && closeModal()">
+    <section class="modalBox" role="dialog" aria-modal="true" [attr.aria-label]="modalTitle">
+      <div class="modalHeader"><h2>{{ modalTitle }}</h2><button class="closeBtn" type="button" (click)="closeModal()" aria-label="Close">×</button></div>
+      <form [formGroup]="entryForm" (ngSubmit)="saveRecord()" novalidate>
+        <div class="formGrid">
+          @for (field of modalFields; track field.key) {
+            <div class="formGroup" [class.full]="field.full">
+              <label [for]="'field-' + field.key">{{ field.label }}{{ field.required ? ' *' : '' }}</label>
+              @if (field.type === 'textarea') {
+                <textarea [id]="'field-' + field.key" [formControlName]="field.key" [placeholder]="field.placeholder || ''" [required]="field.required || false"></textarea>
+              } @else if (field.type === 'select') {
+                <select [id]="'field-' + field.key" [formControlName]="field.key" [required]="field.required || false" (change)="field.key === 'Client ID' ? onClientChanged() : null">
+                  <option value="">Select {{ field.label }}</option>
+                  @for (option of optionsFor(field); track option.value) { <option [value]="option.value">{{ option.label }}</option> }
+                </select>
+              } @else {
+                <input [id]="'field-' + field.key" [type]="field.type" [formControlName]="field.key" [placeholder]="field.placeholder || ''" [required]="field.required || false">
+              }
+              @if (formControl(field.key).touched && formControl(field.key).invalid) { <small class="fieldError">{{ field.type === 'email' ? 'Enter a valid email address.' : field.type === 'url' ? 'Enter a valid http or https URL.' : 'This field is required.' }}</small> }
+            </div>
+          }
+        </div>
+        <div class="modalActions"><button class="cancelBtn" type="button" (click)="closeModal()">Cancel</button><button class="saveBtn" type="submit" [disabled]="saving">{{ saving ? 'Saving...' : 'Save' }}</button></div>
+      </form>
+    </section>
+  </div>
+}

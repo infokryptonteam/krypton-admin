@@ -1,0 +1,39 @@
+{
+  "name": "krypton-admin",
+  "version": "0.0.0",
+  "scripts": {
+    "ng": "ng",
+    "start": "ng serve",
+    "build": "ng build",
+    "pages:dev": "npm run build && wrangler pages dev dist/krypton-admin/browser",
+    "pages:project:create": "wrangler pages project create krypton-admin",
+    "pages:deploy": "npm run build && wrangler pages deploy dist/krypton-admin/browser --project-name krypton-admin",
+    "d1:migrate:local": "wrangler d1 migrations apply krypton-manage-db --local",
+    "d1:migrate:remote": "wrangler d1 migrations apply krypton-manage-db --remote",
+    "watch": "ng build --watch --configuration development",
+    "test": "ng test"
+  },
+  "private": true,
+  "packageManager": "npm@11.19.0",
+  "dependencies": {
+    "@angular/common": "^22.2.0",
+    "@angular/compiler": "^22.2.0",
+    "@angular/core": "^22.2.0",
+    "@angular/forms": "^22.2.0",
+    "@angular/platform-browser": "^22.2.0",
+    "@angular/router": "^22.2.0",
+    "rxjs": "~7.8.0",
+    "tslib": "^2.3.0"
+  },
+  "devDependencies": {
+    "@angular/build": "^22.2.0",
+    "@angular/cli": "^22.2.0",
+    "@angular/compiler-cli": "^22.2.0",
+    "prettier": "^3.8.1",
+    "typescript": "~6.0.2",
+    "wrangler": "^4.142.0"
+  },
+  "allowScripts": {
+    "workerd@1.20260926.1": true
+  }
+}

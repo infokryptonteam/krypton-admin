@@ -1,0 +1,14 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "krypton-admin",
+  "compatibility_date": "2026-09-28",
+  "pages_build_output_dir": "./dist/krypton-admin/browser",
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "krypton-manage-db",
+      "database_id": "cdcacb07-aead-406a-ab91-9f14d88affc6",
+      "migrations_dir": "migrations"
+    }
+  ]
+}
