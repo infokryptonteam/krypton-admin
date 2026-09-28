@@ -28,3 +28,14 @@
 .dangerAction { color: #9c2119; border-color: #f0b9b5; }
 @media (max-width: 900px) { .topbarTools { gap: 7px; } }
 @media (max-width: 640px) { .exportBtn { width: 38px; min-width: 38px; padding: 0; } .exportBtn span { display: none; } }
+
+#loginScreen {
+  background: transparent !important;
+}
+
+.krypton-glass-panel {
+  background: rgba(240, 248, 243, 0.45) !important;
+  backdrop-filter: blur(10px) !important;
+  -webkit-backdrop-filter: blur(10px) !important;
+  border: 1px solid rgba(167, 243, 208, 0.55) !important;
+}
