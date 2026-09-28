@@ -51,6 +51,8 @@ function showToast(title, message, isSuccess = true) {
   const tMsg = document.getElementById("toastMessage");
   const tIcon = document.getElementById("toastIcon");
 
+  if (!toast || !tTitle || !tMsg || !tIcon) return;
+
   tTitle.textContent = title;
   tMsg.textContent = message;
 
@@ -62,7 +64,7 @@ function showToast(title, message, isSuccess = true) {
     tIcon.innerHTML = `<i data-lucide="alert-triangle" class="w-4 h-4 text-rose-600"></i>`;
   }
 
-  lucide.createIcons();
+  if (window.lucide) lucide.createIcons();
   toast.classList.remove("translate-y-[-150%]", "opacity-0");
   toast.classList.add("translate-y-0", "opacity-100");
 
@@ -83,7 +85,7 @@ onAuthStateChanged(auth, (user) => {
   if (user) {
     authScreen.classList.add("hidden");
     const namePart = user.email.split("@")[0];
-    userEmailBadge.textContent = namePart.toUpperCase();
+    if (userEmailBadge) userEmailBadge.textContent = namePart.toUpperCase();
     showToast("Access Granted", `Welcome back, ${namePart}! Krypton portal ready.`);
     initLiveSubscriptions();
   } else {
@@ -91,38 +93,44 @@ onAuthStateChanged(auth, (user) => {
   }
 });
 
-loginForm.addEventListener("submit", async (e) => {
-  e.preventDefault();
-  authError.classList.add("hidden");
-  const email = document.getElementById("authEmail").value;
-  const pass = document.getElementById("authPass").value;
-  try {
-    await signInWithEmailAndPassword(auth, email, pass);
-  } catch (err) {
-    authError.textContent = "Invalid admin credentials. Please re-check.";
-    authError.classList.remove("hidden");
-  }
-});
+if (loginForm) {
+  loginForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    if (authError) authError.classList.add("hidden");
+    const email = document.getElementById("authEmail").value;
+    const pass = document.getElementById("authPass").value;
+    try {
+      await signInWithEmailAndPassword(auth, email, pass);
+    } catch (err) {
+      if (authError) {
+        authError.textContent = "Invalid admin credentials. Please re-check.";
+        authError.classList.remove("hidden");
+      }
+    }
+  });
+}
 
-logoutBtn.addEventListener("click", async () => {
-  if (confirm("Are you sure you want to lock the Krypton workspace and log out?")) {
-    await signOut(auth);
-    showToast("Logged Out", "Workspace locked successfully.", false);
-  }
-});
+if (logoutBtn) {
+  logoutBtn.addEventListener("click", async () => {
+    if (confirm("Are you sure you want to lock the Krypton workspace and log out?")) {
+      await signOut(auth);
+      showToast("Logged Out", "Workspace locked successfully.", false);
+    }
+  });
+}
 
 // ================= 4. MOBILE DRAWER NAVIGATION =================
 const mobileMenuToggle = document.getElementById("mobileMenuToggle");
 const closeSidebarBtn = document.getElementById("closeSidebarBtn");
 const sidebar = document.getElementById("sidebar");
 
-if (mobileMenuToggle) {
+if (mobileMenuToggle && sidebar) {
   mobileMenuToggle.addEventListener("click", () => {
     sidebar.classList.remove("-translate-x-full");
   });
 }
 
-if (closeSidebarBtn) {
+if (closeSidebarBtn && sidebar) {
   closeSidebarBtn.addEventListener("click", () => {
     sidebar.classList.add("-translate-x-full");
   });
@@ -150,20 +158,27 @@ function initLiveSubscriptions() {
 
 // ================= 6. KPI METRICS =================
 function updateDashboardCounts() {
-  document.getElementById("statClients").textContent = state.data.clients.length;
+  const elClients = document.getElementById("statClients");
+  const elProjects = document.getElementById("statProjects");
+  const elTasks = document.getElementById("statTasks");
+  const elMRR = document.getElementById("statMRR");
+  const elRev = document.getElementById("statRevenue");
+
+  if (elClients) elClients.textContent = state.data.clients.length;
+  
   const activeProjects = state.data.projects.filter(p => p.status !== "Completed").length;
-  document.getElementById("statProjects").textContent = activeProjects;
+  if (elProjects) elProjects.textContent = activeProjects;
 
   const pendingTasks = state.data.tasks.filter(t => t.status !== "Done").length;
-  document.getElementById("statTasks").textContent = pendingTasks;
+  if (elTasks) elTasks.textContent = pendingTasks;
 
   const monthlyTotal = state.data.recurring
     .filter(r => r.subscriptionStatus === "Active")
     .reduce((acc, curr) => acc + (Number(curr.monthlyFee) || 0), 0);
-  document.getElementById("statMRR").textContent = `₹${monthlyTotal.toLocaleString()}`;
+  if (elMRR) elMRR.textContent = `₹${monthlyTotal.toLocaleString()}`;
 
   const totalRev = state.data.payments.reduce((acc, curr) => acc + (Number(curr.amount) || 0), 0);
-  document.getElementById("statRevenue").textContent = `₹${totalRev.toLocaleString()}`;
+  if (elRev) elRev.textContent = `₹${totalRev.toLocaleString()}`;
 }
 
 // ================= 7. FORM SCHEMAS =================
@@ -234,8 +249,8 @@ function openModalForTab(tab) {
   };
 
   const target = tab === "dashboard" ? "clients" : tab;
-  modalTitle.textContent = `New ${displayNames[target] || "Record"}`;
-  formFieldsContainer.innerHTML = "";
+  if (modalTitle) modalTitle.textContent = `New ${displayNames[target] || "Record"}`;
+  if (formFieldsContainer) formFieldsContainer.innerHTML = "";
   const fields = schemas[target] || [];
 
   fields.forEach(f => {
@@ -260,37 +275,50 @@ function openModalForTab(tab) {
       input.className = "w-full bg-slate-50 border border-slate-300 text-xs px-3.5 py-2.5 rounded-xl text-slate-800 outline-none krypton-border-focus transition";
       wrap.appendChild(input);
     }
-    formFieldsContainer.appendChild(wrap);
+    if (formFieldsContainer) formFieldsContainer.appendChild(wrap);
   });
 
-  entryModal.classList.remove("hidden");
-  entryModal.classList.add("flex");
+  if (entryModal) {
+    entryModal.classList.remove("hidden");
+    entryModal.classList.add("flex");
+  }
 }
 
-openModalBtn.addEventListener("click", () => openModalForTab(state.currentTab));
-closeModalBtn.addEventListener("click", () => {
-  entryModal.classList.add("hidden");
-  entryModal.classList.remove("flex");
-});
+if (openModalBtn) {
+  openModalBtn.addEventListener("click", () => openModalForTab(state.currentTab));
+}
 
-universalForm.addEventListener("submit", async (e) => {
-  e.preventDefault();
-  const formData = new FormData(universalForm);
-  const payload = Object.fromEntries(formData.entries());
-  payload.createdAt = serverTimestamp();
+if (closeModalBtn) {
+  closeModalBtn.addEventListener("click", () => {
+    if (entryModal) {
+      entryModal.classList.add("hidden");
+      entryModal.classList.remove("flex");
+    }
+  });
+}
 
-  const targetCollection = state.currentTab === "dashboard" ? "clients" : state.currentTab;
+if (universalForm) {
+  universalForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const formData = new FormData(universalForm);
+    const payload = Object.fromEntries(formData.entries());
+    payload.createdAt = serverTimestamp();
 
-  try {
-    await addDoc(collection(db, targetCollection), payload);
-    showToast("Record Synchronized", "Data updated live to cloud storage.");
-    universalForm.reset();
-    entryModal.classList.add("hidden");
-    entryModal.classList.remove("flex");
-  } catch (err) {
-    showToast("Error", err.message, false);
-  }
-});
+    const targetCollection = state.currentTab === "dashboard" ? "clients" : state.currentTab;
+
+    try {
+      await addDoc(collection(db, targetCollection), payload);
+      showToast("Record Synchronized", "Data updated live to cloud storage.");
+      universalForm.reset();
+      if (entryModal) {
+        entryModal.classList.add("hidden");
+        entryModal.classList.remove("flex");
+      }
+    } catch (err) {
+      showToast("Error", err.message, false);
+    }
+  });
+}
 
 window.deleteEntity = async (col, id) => {
   if (confirm("Delete this entry permanently from Krypton records?")) {
@@ -299,55 +327,90 @@ window.deleteEntity = async (col, id) => {
   }
 };
 
-// ================= 9. EXPORT DATA TO EXCEL / CSV =================
-document.getElementById("exportCsvBtn").addEventListener("click", () => {
-  const tab = state.currentTab;
-  let exportData = [];
-  let filename = `krypton_${tab}_export.csv`;
+// ================= 9. EXPORT DATA TO EXCEL / CSV (FIXED) =================
+const exportCsvBtn = document.getElementById("exportCsvBtn");
+if (exportCsvBtn) {
+  exportCsvBtn.addEventListener("click", () => {
+    const tab = state.currentTab;
+    let exportData = [];
+    let filename = `krypton_${tab}_export.csv`;
 
-  if (tab === "dashboard" || tab === "reports") {
-    // Export combined summary if on dashboard
-    exportData = state.data.clients.map(c => ({
-      Category: "Client",
-      Name: c.name,
-      Contact: c.phone,
-      Service: c.service,
-      Status: c.status
-    }));
-    filename = "krypton_all_clients_export.csv";
-  } else {
-    exportData = state.data[tab] || [];
-  }
+    if (tab === "dashboard" || tab === "reports") {
+      const allClients = state.data.clients.map(c => ({
+        Module: "Client",
+        Title: c.name || "",
+        Contact: c.phone || "",
+        Detail: c.service || "",
+        Status: c.status || ""
+      }));
+      const allProjects = state.data.projects.map(p => ({
+        Module: "Project",
+        Title: p.title || "",
+        Contact: p.client || "",
+        Detail: `Rs. ${p.budget || 0}`,
+        Status: p.status || ""
+      }));
+      const allPayments = state.data.payments.map(m => ({
+        Module: "Payment",
+        Title: m.client || "",
+        Contact: m.date || "",
+        Detail: `Rs. ${m.amount || 0}`,
+        Status: m.type || ""
+      }));
+      exportData = [...allClients, ...allProjects, ...allPayments];
+      filename = "krypton_master_summary.csv";
+    } else {
+      exportData = state.data[tab] || [];
+    }
 
-  if (exportData.length === 0) {
-    alert("No records to export.");
-    return;
-  }
+    if (!exportData || exportData.length === 0) {
+      alert("No data available to export in this section yet! Please add records first.");
+      return;
+    }
 
-  const keys = Object.keys(exportData[0]).filter(k => k !== "id" && k !== "createdAt");
-  const csvRows = [];
-  csvRows.push(keys.join(","));
+    const keys = Object.keys(exportData[0]).filter(k => k !== "id" && k !== "createdAt");
+    
+    // Add UTF-8 BOM so Excel opens text, rupee symbols cleanly
+    let csvContent = "\uFEFF";
+    csvContent += keys.join(",") + "\r\n";
 
-  exportData.forEach(row => {
-    const values = keys.map(k => {
-      const val = row[k] ? String(row[k]).replace(/"/g, '""') : "";
-      return `"${val}"`;
+    exportData.forEach(row => {
+      const line = keys.map(k => {
+        let val = row[k] !== undefined && row[k] !== null ? String(row[k]) : "";
+        val = val.replace(/"/g, '""');
+        return `"${val}"`;
+      }).join(",");
+      csvContent += line + "\r\n";
     });
-    csvRows.push(values.join(","));
+
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", filename);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+
+    showToast("Excel Exported", `${filename} downloaded successfully.`);
   });
+}
 
-  const blob = new Blob([csvRows.join("\n")], { type: "text/csv;charset=utf-8;" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = filename;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  showToast("File Downloaded", `${filename} downloaded successfully.`);
-});
+// ================= 10. REFRESH BUTTON (FIXED) =================
+const refreshBtn = document.getElementById("refreshBtn");
+if (refreshBtn) {
+  refreshBtn.addEventListener("click", () => {
+    refreshBtn.classList.add("animate-spin");
+    initLiveSubscriptions();
+    showToast("Syncing", "Workspace re-synced with Google Cloud.");
+    setTimeout(() => {
+      refreshBtn.classList.remove("animate-spin");
+    }, 700);
+  });
+}
 
-// ================= 10. RENDER ENGINE =================
+// ================= 11. RENDER ENGINE =================
 const container = document.getElementById("tabContentContainer");
 const sectionTitle = document.getElementById("currentSectionTitle");
 const newEntryBtnLabel = document.getElementById("newEntryBtnLabel");
@@ -378,8 +441,8 @@ const buttonLabelMap = {
 
 function renderActiveTab() {
   const tab = state.currentTab;
-  sectionTitle.textContent = titleMap[tab] || "Portal View";
-  newEntryBtnLabel.textContent = buttonLabelMap[tab] || "Add Entry";
+  if (sectionTitle) sectionTitle.textContent = titleMap[tab] || "Portal View";
+  if (newEntryBtnLabel) newEntryBtnLabel.textContent = buttonLabelMap[tab] || "Add Entry";
 
   if (tab === "dashboard") {
     renderDashboardView();
@@ -400,7 +463,9 @@ function renderActiveTab() {
     );
   }
 
-  recordCountLabel.textContent = `${list.length} Records`;
+  if (recordCountLabel) recordCountLabel.textContent = `${list.length} Records`;
+
+  if (!container) return;
 
   if (list.length === 0) {
     container.innerHTML = `
@@ -409,11 +474,11 @@ function renderActiveTab() {
         No active records found in this category.
       </div>
     `;
-    lucide.createIcons();
+    if (window.lucide) lucide.createIcons();
     return;
   }
 
-  const headers = schemas[tab].map(s => s.label);
+  const headers = (schemas[tab] || []).map(s => s.label);
   let tableHtml = `
     <table class="w-full text-left text-xs text-slate-700">
       <thead class="bg-slate-50 text-[11px] font-bold text-slate-500 border-b border-slate-200 uppercase tracking-wider">
@@ -427,7 +492,7 @@ function renderActiveTab() {
 
   list.forEach(row => {
     tableHtml += `<tr class="hover:bg-slate-50/80 transition">`;
-    schemas[tab].forEach(field => {
+    (schemas[tab] || []).forEach(field => {
       let val = row[field.name] || "-";
       
       if (field.name === "budget" || field.name === "amount" || field.name === "monthlyFee") {
@@ -455,14 +520,16 @@ function renderActiveTab() {
 
   tableHtml += `</tbody></table>`;
   container.innerHTML = tableHtml;
-  lucide.createIcons();
+  if (window.lucide) lucide.createIcons();
 }
 
-// ================= 11. OVERVIEW DASHBOARD VIEW =================
+// ================= 12. OVERVIEW DASHBOARD VIEW =================
 function renderDashboardView() {
-  recordCountLabel.textContent = "Live Summary";
+  if (recordCountLabel) recordCountLabel.textContent = "Live Summary";
   const recentProjects = state.data.projects.slice(0, 4);
   const urgentTasks = state.data.tasks.filter(t => t.priority === "Urgent" || t.priority === "High").slice(0, 4);
+
+  if (!container) return;
 
   container.innerHTML = `
     <div class="p-6 space-y-6">
@@ -493,12 +560,12 @@ function renderDashboardView() {
             ${recentProjects.length === 0 ? '<p class="text-xs text-slate-400 py-4 text-center">No projects added yet.</p>' : recentProjects.map(p => `
               <div class="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-100">
                 <div>
-                  <p class="text-xs font-bold text-slate-800">${p.title}</p>
-                  <p class="text-[11px] text-slate-400">Client: ${p.client}</p>
+                  <p class="text-xs font-bold text-slate-800">${p.title || "Untitled"}</p>
+                  <p class="text-[11px] text-slate-400">Client: ${p.client || "-"}</p>
                 </div>
                 <div class="text-right">
                   <span class="text-xs font-mono font-bold text-slate-900">₹${Number(p.budget || 0).toLocaleString()}</span>
-                  <span class="block text-[10px] text-slate-500 font-semibold">${p.status}</span>
+                  <span class="block text-[10px] text-slate-500 font-semibold">${p.status || "Planning"}</span>
                 </div>
               </div>
             `).join('')}
@@ -517,10 +584,10 @@ function renderDashboardView() {
             ${urgentTasks.length === 0 ? '<p class="text-xs text-slate-400 py-4 text-center">No urgent tasks pending.</p>' : urgentTasks.map(t => `
               <div class="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-100">
                 <div>
-                  <p class="text-xs font-bold text-slate-800">${t.task}</p>
-                  <p class="text-[11px] text-slate-400">Assigned: ${t.assignee}</p>
+                  <p class="text-xs font-bold text-slate-800">${t.task || "Task"}</p>
+                  <p class="text-[11px] text-slate-400">Assigned: ${t.assignee || "-"}</p>
                 </div>
-                <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200">${t.priority}</span>
+                <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200">${t.priority || "High"}</span>
               </div>
             `).join('')}
           </div>
@@ -528,16 +595,18 @@ function renderDashboardView() {
       </div>
     </div>
   `;
-  lucide.createIcons();
+  if (window.lucide) lucide.createIcons();
 }
 
-// ================= 12. REPORTS SUMMARY VIEW =================
+// ================= 13. REPORTS SUMMARY VIEW =================
 function renderReportsView() {
   const rev = state.data.payments.reduce((acc, c) => acc + (Number(c.amount) || 0), 0);
   const totalPipeline = state.data.projects.reduce((acc, p) => acc + (Number(p.budget) || 0), 0);
   const activeMRR = state.data.recurring
     .filter(r => r.subscriptionStatus === "Active")
     .reduce((acc, curr) => acc + (Number(curr.monthlyFee) || 0), 0);
+
+  if (!container) return;
 
   container.innerHTML = `
     <div class="p-6 grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -560,7 +629,7 @@ function renderReportsView() {
   `;
 }
 
-// ================= 13. TAB SWITCHING =================
+// ================= 14. TAB SWITCHING =================
 document.querySelectorAll(".tab-btn").forEach(btn => {
   btn.addEventListener("click", () => {
     document.querySelectorAll(".tab-btn").forEach(b => {
@@ -569,26 +638,21 @@ document.querySelectorAll(".tab-btn").forEach(btn => {
     btn.className = "tab-btn w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-sm font-bold bg-krypton-neon text-slate-950 krypton-glow transition";
     
     state.currentTab = btn.getAttribute("data-tab");
-    openModalBtn.style.display = state.currentTab === "reports" ? "none" : "flex";
+    if (openModalBtn) openModalBtn.style.display = state.currentTab === "reports" ? "none" : "flex";
     
-    // Close mobile sidebar if open
     if (sidebar) sidebar.classList.add("-translate-x-full");
     
     renderActiveTab();
   });
 });
 
-document.getElementById("globalSearch").addEventListener("input", (e) => {
-  state.searchQuery = e.target.value;
-  renderActiveTab();
-});
-
-document.getElementById("refreshBtn").addEventListener("click", () => {
-  const icon = document.getElementById("refreshIcon");
-  icon.classList.add("animate-spin");
-  initLiveSubscriptions();
-  setTimeout(() => icon.classList.remove("animate-spin"), 600);
-});
+const searchInput = document.getElementById("globalSearch");
+if (searchInput) {
+  searchInput.addEventListener("input", (e) => {
+    state.searchQuery = e.target.value;
+    renderActiveTab();
+  });
+}
 
 // Initial boot
-lucide.createIcons();
+if (window.lucide) lucide.createIcons();
