@@ -15,7 +15,7 @@ import {
   serverTimestamp 
 } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
 
-// ================= 1. KRYPTON REAL FIREBASE CONFIG =================
+// ================= 1. KRYPTON REAL FIREBASE & GOOGLE SHEET CONFIG =================
 const firebaseConfig = {
   apiKey: "AIzaSyAYLFZsORRugzjOkBnA5P4hxux517mlGfE",
   authDomain: "krypton-admin-d96be.firebaseapp.com",
@@ -24,6 +24,9 @@ const firebaseConfig = {
   messagingSenderId: "375617512339",
   appId: "1:375617512339:web:2baefdb4baa87558babe66"
 };
+
+// Apps Script Web App URL yahan daalein (Step 1 se):
+const GOOGLE_SHEET_WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbwgX71PP4Fjf0ldE-BjaWfSLdYp8Sh2Ff0AO3sa0ZWpJgnF5EQJyJZGXDlA6xFJ6ST-Jg/exec";
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
@@ -181,7 +184,7 @@ function updateDashboardCounts() {
   if (elRev) elRev.textContent = `₹${totalRev.toLocaleString()}`;
 }
 
-// ================= 7. FORM SCHEMAS =================
+// ================= 7. FORM SCHEMAS (WITH FILE / ASSET URL) =================
 const schemas = {
   clients: [
     { name: "name", label: "Client or Business Name", type: "text", required: true },
@@ -194,7 +197,8 @@ const schemas = {
     { name: "client", label: "Client Name", type: "text", required: true },
     { name: "budget", label: "Project Value (₹)", type: "number", required: true },
     { name: "deadline", label: "Delivery Due Date", type: "date", required: true },
-    { name: "status", label: "Execution Stage", type: "select", options: ["Planning", "In Progress", "In Review", "Completed"] }
+    { name: "status", label: "Execution Stage", type: "select", options: ["Planning", "In Progress", "In Review", "Completed"] },
+    { name: "fileUrl", label: "File / Deliverable URL (Drive/Figma/Canva)", type: "url", required: false }
   ],
   tasks: [
     { name: "task", label: "Task Description", type: "text", required: true },
@@ -219,7 +223,8 @@ const schemas = {
     { name: "title", label: "Content / Reel Headline", type: "text", required: true },
     { name: "platform", label: "Distribution Channel", type: "select", options: ["Instagram Reel", "YouTube Shorts", "YouTube Long-form", "LinkedIn"] },
     { name: "scheduledDate", label: "Publish Date", type: "date", required: true },
-    { name: "status", label: "Production Status", type: "select", options: ["Idea", "Script Ready", "Editing Done", "Posted"] }
+    { name: "status", label: "Production Status", type: "select", options: ["Idea", "Script Ready", "Editing Done", "Posted"] },
+    { name: "fileUrl", label: "Asset / Media Link (Drive / Post URL)", type: "url", required: false }
   ],
   team: [
     { name: "fullName", label: "Member Name", type: "text", required: true },
@@ -229,7 +234,7 @@ const schemas = {
   ]
 };
 
-// ================= 8. MODAL HANDLERS =================
+// ================= 8. MODAL HANDLERS & DUAL SYNC =================
 const entryModal = document.getElementById("entryModal");
 const openModalBtn = document.getElementById("openModalBtn");
 const closeModalBtn = document.getElementById("closeModalBtn");
@@ -272,6 +277,7 @@ function openModalForTab(tab) {
       input.type = f.type;
       input.name = f.name;
       if (f.required) input.required = true;
+      if (f.type === "url") input.placeholder = "https://...";
       input.className = "w-full bg-slate-50 border border-slate-300 text-xs px-3.5 py-2.5 rounded-xl text-slate-800 outline-none krypton-border-focus transition";
       wrap.appendChild(input);
     }
@@ -307,8 +313,23 @@ if (universalForm) {
     const targetCollection = state.currentTab === "dashboard" ? "clients" : state.currentTab;
 
     try {
+      // 1. Save to Firebase Firestore
       await addDoc(collection(db, targetCollection), payload);
-      showToast("Record Synchronized", "Data updated live to cloud storage.");
+
+      // 2. Dual Sync to Google Sheets (if URL configured)
+      if (GOOGLE_SHEET_WEBHOOK_URL && !GOOGLE_SHEET_WEBHOOK_URL.includes("AAPKA_APPS_SCRIPT")) {
+        fetch(GOOGLE_SHEET_WEBHOOK_URL, {
+          method: "POST",
+          mode: "no-cors",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            moduleType: targetCollection,
+            ...payload
+          })
+        }).catch(err => console.warn("Google Sheet sync notice:", err));
+      }
+
+      showToast("Synced Successfully", "Data updated in Firebase and Google Sheets.");
       universalForm.reset();
       if (entryModal) {
         entryModal.classList.add("hidden");
@@ -327,7 +348,7 @@ window.deleteEntity = async (col, id) => {
   }
 };
 
-// ================= 9. EXPORT DATA TO EXCEL / CSV (FIXED) =================
+// ================= 9. EXPORT DATA TO EXCEL / CSV =================
 const exportCsvBtn = document.getElementById("exportCsvBtn");
 if (exportCsvBtn) {
   exportCsvBtn.addEventListener("click", () => {
@@ -341,21 +362,24 @@ if (exportCsvBtn) {
         Title: c.name || "",
         Contact: c.phone || "",
         Detail: c.service || "",
-        Status: c.status || ""
+        Status: c.status || "",
+        FileUrl: ""
       }));
       const allProjects = state.data.projects.map(p => ({
         Module: "Project",
         Title: p.title || "",
         Contact: p.client || "",
         Detail: `Rs. ${p.budget || 0}`,
-        Status: p.status || ""
+        Status: p.status || "",
+        FileUrl: p.fileUrl || ""
       }));
       const allPayments = state.data.payments.map(m => ({
         Module: "Payment",
         Title: m.client || "",
         Contact: m.date || "",
         Detail: `Rs. ${m.amount || 0}`,
-        Status: m.type || ""
+        Status: m.type || "",
+        FileUrl: ""
       }));
       exportData = [...allClients, ...allProjects, ...allPayments];
       filename = "krypton_master_summary.csv";
@@ -369,8 +393,6 @@ if (exportCsvBtn) {
     }
 
     const keys = Object.keys(exportData[0]).filter(k => k !== "id" && k !== "createdAt");
-    
-    // Add UTF-8 BOM so Excel opens text, rupee symbols cleanly
     let csvContent = "\uFEFF";
     csvContent += keys.join(",") + "\r\n";
 
@@ -397,7 +419,7 @@ if (exportCsvBtn) {
   });
 }
 
-// ================= 10. REFRESH BUTTON (FIXED) =================
+// ================= 10. REFRESH BUTTON =================
 const refreshBtn = document.getElementById("refreshBtn");
 if (refreshBtn) {
   refreshBtn.addEventListener("click", () => {
@@ -495,7 +517,17 @@ function renderActiveTab() {
     (schemas[tab] || []).forEach(field => {
       let val = row[field.name] || "-";
       
-      if (field.name === "budget" || field.name === "amount" || field.name === "monthlyFee") {
+      if (field.name === "fileUrl") {
+        if (val && val !== "-" && (val.startsWith("http://") || val.startsWith("https://"))) {
+          val = `<a href="${val}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center space-x-1 px-2.5 py-1 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-lg font-semibold transition border border-blue-200">
+            <span>Open Link</span>
+            <i data-lucide="external-link" class="w-3 h-3"></i>
+          </a>`;
+        } else {
+          val = `<span class="text-slate-400 italic">No URL</span>`;
+        }
+      }
+      else if (field.name === "budget" || field.name === "amount" || field.name === "monthlyFee") {
         val = `<span class="font-mono font-bold text-slate-900 bg-krypton-tint border border-krypton-border px-2 py-0.5 rounded-lg">₹${Number(val).toLocaleString()}</span>`;
       } 
       else if (field.name === "status" || field.name === "subscriptionStatus" || field.name === "priority") {
@@ -533,12 +565,11 @@ function renderDashboardView() {
 
   container.innerHTML = `
     <div class="p-6 space-y-6">
-      <!-- Welcome Banner -->
       <div class="bg-gradient-to-r from-slate-900 to-slate-800 text-white rounded-2xl p-6 relative overflow-hidden flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div class="space-y-1 z-10">
           <span class="inline-block bg-krypton-neon/20 border border-krypton-neon/40 text-krypton-neon px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider">Agency Command Center</span>
           <h3 class="text-xl font-black text-white">Welcome back to Krypton Operations</h3>
-          <p class="text-xs text-slate-300">All modules synchronized in real-time with Google Cloud.</p>
+          <p class="text-xs text-slate-300">Synchronized with Google Cloud & Google Sheets.</p>
         </div>
         <button onclick="document.querySelector('[data-tab=projects]').click()" class="z-10 px-4 py-2.5 rounded-xl bg-krypton-neon text-slate-950 font-bold text-xs shadow krypton-glow active:scale-95 transition">
           View Projects Pipeline
@@ -546,9 +577,7 @@ function renderDashboardView() {
         <div class="absolute -right-10 -bottom-10 w-44 h-44 bg-krypton-neon/15 rounded-full blur-3xl pointer-events-none"></div>
       </div>
 
-      <!-- Two Column Activity Grid -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <!-- Recent Projects -->
         <div class="border border-slate-200 rounded-2xl p-5 bg-white shadow-sm">
           <div class="flex items-center justify-between mb-4">
             <h4 class="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
@@ -572,7 +601,6 @@ function renderDashboardView() {
           </div>
         </div>
 
-        <!-- High Priority Tasks -->
         <div class="border border-slate-200 rounded-2xl p-5 bg-white shadow-sm">
           <div class="flex items-center justify-between mb-4">
             <h4 class="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
