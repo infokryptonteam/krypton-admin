@@ -1547,3 +1547,40 @@ body {
   background-color: #0EB834;
   box-shadow: 0 6px 20px rgba(16, 208, 58, 0.45);
 }
+:root {
+  --bg-base: #E2ECE5;
+  --card-glass: rgba(240, 248, 243, 0.55);
+  --card-border: rgba(167, 243, 208, 0.65);
+  --sidebar-glass: rgba(244, 250, 246, 0.65);
+}
+
+body {
+  background-color: var(--bg-base);
+  margin: 0;
+  color: #0F172A;
+}
+
+.krypton-glass-panel {
+  background: var(--card-glass);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--card-border);
+}
+
+.krypton-sidebar-glass {
+  background: var(--sidebar-glass);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-right: 1px solid var(--card-border);
+}
+
+.krypton-glow-btn {
+  background-color: #10D03A;
+  box-shadow: 0 4px 16px rgba(16, 208, 58, 0.35);
+  transition: all 0.2s ease;
+}
+
+.krypton-glow-btn:hover {
+  background-color: #0EB834;
+  box-shadow: 0 6px 20px rgba(16, 208, 58, 0.45);
+}
