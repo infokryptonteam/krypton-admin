@@ -2,7 +2,7 @@ import { failure, hasSameOrigin, readJson, success } from '../../_lib/http.js';
 import { constantTimeEqual, hashPassword, newSalt } from '../../_lib/security.js';
 
 export async function onRequestPost({ request, env }) {
-  if (!env.BOOTSTRAP_SECRET) return failure('Admin setup is disabled.', 404);
+  if (!constantTimeEqual(suppliedSecret.trim(), String(env.BOOTSTRAP_SECRET).trim())) return failure('Not authorized.', 401);
   if (!hasSameOrigin(request)) return failure('Invalid request origin.', 403);
   const suppliedSecret = (request.headers.get('Authorization') || '').replace(/^Bearer\s+/i, '');
   if (!constantTimeEqual(suppliedSecret, env.BOOTSTRAP_SECRET)) return failure('Not authorized.', 401);
