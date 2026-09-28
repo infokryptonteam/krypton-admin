@@ -36,6 +36,7 @@ interface FormField {
   required?: boolean;
   full?: boolean;
   placeholder?: string;
+  initialValue?: string;
   options?: SelectOption[];
 }
 
@@ -243,9 +244,11 @@ export class App implements OnInit {
     this.entryForm = new FormRecord<FormControl<string>>({});
     for (const field of this.modalFields) {
       const validators = field.required ? [Validators.required] : [];
+      if (field.required && field.type !== 'select') validators.push(Validators.pattern(/\S/));
       if (field.type === 'email') validators.push(Validators.email);
       if (field.type === 'url') validators.push(Validators.pattern(/^https?:\/\/.+\..+/i));
-      this.entryForm.addControl(field.key, new FormControl('', { nonNullable: true, validators }));
+      if (field.type === 'number') validators.push(Validators.min(field.key === 'Amount' ? 0.01 : 0));
+      this.entryForm.addControl(field.key, new FormControl(field.initialValue || '', { nonNullable: true, validators }));
     }
   }
 
@@ -364,19 +367,19 @@ export class App implements OnInit {
   private fieldsFor(page: DataKey): FormField[] {
     const choices = (values: string[]): SelectOption[] => values.map(value => ({ value, label: value }));
     const client = (): FormField => ({ key: 'Client ID', label: 'Client', type: 'select', required: true });
-    const project = (): FormField => ({ key: 'Project ID', label: 'Project', type: 'select', required: true });
+    const project = (required = true): FormField => ({ key: 'Project ID', label: 'Project', type: 'select', required });
     switch (page) {
       case 'clients': return [
         { key: 'Client Name', label: 'Client Name', type: 'text', required: true, placeholder: 'Client / Company name' },
         { key: 'Contact Person', label: 'Contact Person', type: 'text' }, { key: 'Phone', label: 'Phone', type: 'tel' },
         { key: 'Email', label: 'Email', type: 'email' }, { key: 'Services', label: 'Services', type: 'text', placeholder: 'Web, Design, Marketing...' },
-        { key: 'Status', label: 'Status', type: 'select', options: choices(['Active', 'Inactive', 'Completed']) }, { key: 'Start Date', label: 'Start Date', type: 'date' },
+        { key: 'Status', label: 'Status', type: 'select', initialValue: 'Active', options: choices(['Active', 'Inactive', 'Completed']) }, { key: 'Start Date', label: 'Start Date', type: 'date' },
         { key: 'Notes', label: 'Notes', type: 'textarea', full: true },
       ];
       case 'projects': return [
         client(), { key: 'Project Name', label: 'Project Name', type: 'text', required: true },
         { key: 'Description', label: 'Description', type: 'textarea', full: true }, { key: 'Assigned To', label: 'Assigned To', type: 'text' },
-        { key: 'Priority', label: 'Priority', type: 'select', options: choices(['Low', 'Medium', 'High']) }, { key: 'Status', label: 'Status', type: 'select', options: choices(['Planning', 'In Progress', 'Completed', 'On Hold']) },
+        { key: 'Priority', label: 'Priority', type: 'select', initialValue: 'Medium', options: choices(['Low', 'Medium', 'High']) }, { key: 'Status', label: 'Status', type: 'select', initialValue: 'Planning', options: choices(['Planning', 'In Progress', 'Completed', 'On Hold']) },
         { key: 'Budget', label: 'Budget', type: 'number' }, { key: 'Start Date', label: 'Start Date', type: 'date' },
         { key: 'Deadline', label: 'Deadline', type: 'date' }, { key: 'Notes', label: 'Notes', type: 'textarea', full: true },
       ];
@@ -393,16 +396,16 @@ export class App implements OnInit {
       ];
       case 'tasks': return [
         client(), project(), { key: 'Task', label: 'Task', type: 'text', required: true, full: true }, { key: 'Assigned To', label: 'Assigned To', type: 'text' },
-        { key: 'Priority', label: 'Priority', type: 'select', options: choices(['Low', 'Medium', 'High']) }, { key: 'Status', label: 'Status', type: 'select', options: choices(['Pending', 'In Progress', 'Completed']) },
+        { key: 'Priority', label: 'Priority', type: 'select', initialValue: 'Medium', options: choices(['Low', 'Medium', 'High']) }, { key: 'Status', label: 'Status', type: 'select', initialValue: 'Pending', options: choices(['Pending', 'In Progress', 'Completed']) },
         { key: 'Deadline', label: 'Deadline', type: 'date' },
       ];
       case 'team': return [
         { key: 'Name', label: 'Name', type: 'text', required: true }, { key: 'Role', label: 'Role', type: 'text' }, { key: 'Phone', label: 'Phone', type: 'tel' },
-        { key: 'Email', label: 'Email', type: 'email' }, { key: 'Status', label: 'Status', type: 'select', options: choices(['Active', 'Inactive']) },
+        { key: 'Email', label: 'Email', type: 'email' }, { key: 'Status', label: 'Status', type: 'select', initialValue: 'Active', options: choices(['Active', 'Inactive']) },
       ];
       case 'payments': return [
-        client(), project(), { key: 'Amount', label: 'Amount', type: 'number', required: true }, { key: 'Payment Date', label: 'Payment Date', type: 'date' },
-        { key: 'Due Date', label: 'Due Date', type: 'date' }, { key: 'Status', label: 'Status', type: 'select', options: choices(['Pending', 'Paid', 'Overdue']) },
+        client(), project(false), { key: 'Amount', label: 'Amount', type: 'number', required: true }, { key: 'Payment Date', label: 'Payment Date', type: 'date' },
+        { key: 'Due Date', label: 'Due Date', type: 'date' }, { key: 'Status', label: 'Status', type: 'select', initialValue: 'Pending', options: choices(['Pending', 'Paid', 'Overdue']) },
         { key: 'Notes', label: 'Notes', type: 'textarea', full: true },
       ];
       case 'reports': return [

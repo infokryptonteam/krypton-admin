@@ -149,13 +149,13 @@
                   @for (option of optionsFor(field); track option.value) { <option [value]="option.value">{{ option.label }}</option> }
                 </select>
               } @else {
-                <input [id]="'field-' + field.key" [type]="field.type" [formControlName]="field.key" [placeholder]="field.placeholder || ''" [required]="field.required || false">
+                <input [id]="'field-' + field.key" [type]="field.type" [formControlName]="field.key" [placeholder]="field.placeholder || ''" [required]="field.required || false" [min]="field.key === 'Amount' ? 0.01 : field.key === 'Budget' ? 0 : null" [step]="field.type === 'number' ? 'any' : null">
               }
               @if (formControl(field.key).touched && formControl(field.key).invalid) { <small class="fieldError">{{ field.type === 'email' ? 'Enter a valid email address.' : field.type === 'url' ? 'Enter a valid http or https URL.' : 'This field is required.' }}</small> }
             </div>
           }
         </div>
-        <div class="modalActions"><button class="cancelBtn" type="button" (click)="closeModal()">Cancel</button><button class="saveBtn" type="submit" [disabled]="saving">{{ saving ? 'Saving...' : 'Save' }}</button></div>
+        <div class="modalActions"><button class="cancelBtn" type="button" (click)="closeModal()">Cancel</button><button class="saveBtn" type="button" (click)="saveRecord()" [disabled]="saving">{{ saving ? 'Saving...' : 'Save' }}</button></div>
       </form>
     </section>
   </div>

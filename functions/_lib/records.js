@@ -34,6 +34,16 @@ export function validateRecord(entity, record) {
       throw new Error(`${field} is required.`);
     }
   }
+  if (entity === 'payments') {
+    const amount = Number(record.Amount);
+    if (!Number.isFinite(amount) || amount <= 0) throw new Error('Payment amount must be greater than zero.');
+    record.Amount = amount;
+  }
+  if (entity === 'projects' && record.Budget !== undefined && record.Budget !== '') {
+    const budget = Number(record.Budget);
+    if (!Number.isFinite(budget) || budget < 0) throw new Error('Project budget must be zero or greater.');
+    record.Budget = budget;
+  }
   if (entity === 'urls' || (entity === 'reports' && record['Report URL']) || (entity === 'files' && record['File Link'])) {
     const value = String(record.URL || record['Report URL'] || record['File Link'] || '');
     if (value && !/^https?:\/\//i.test(value)) throw new Error('Links must use http or https.');
