@@ -52,141 +52,108 @@
   </main>
 }
 } @else {
-  <div id="app" class="is-visible">
-    <aside class="sidebar" [class.open]="sidebarOpen" aria-label="Main navigation">
-      <div class="sideBrand"><span>K</span> KRYPTON</div>
-      @for (page of pages; track page.id) {
-        <button class="navItem" type="button" [class.active]="activePage === page.id" [attr.aria-current]="activePage === page.id ? 'page' : null" (click)="showPage(page.id)">{{ page.label }}</button>
-      }
-      <button class="logout" type="button" (click)="logout()">Logout</button>
+  <div id="app" class="min-h-screen flex flex-col md:flex-row relative">
+
+    <!-- Mobile Top Header -->
+    <header class="md:hidden bg-white/60 backdrop-blur-xl border-b border-emerald-200 px-4 py-3 flex items-center justify-between sticky top-0 z-30">
+      <div class="flex items-center space-x-2.5">
+        <div class="w-8 h-8 rounded-xl krypton-logo-badge flex items-center justify-center font-bold text-emerald-800 text-xs">K</div>
+        <span class="font-extrabold text-sm tracking-tight text-slate-900">KRYPTON</span>
+      </div>
+      <button type="button" (click)="toggleSidebar()" class="p-2 rounded-xl bg-white/70 border border-emerald-200 text-xs font-bold text-slate-700">
+        Menu
+      </button>
+    </header>
+
+    <!-- Sidebar (Translucent Frosted Glass) -->
+    <aside class="w-64 krypton-sidebar-glass p-5 flex flex-col justify-between fixed md:static inset-y-0 left-0 z-40 transition-transform duration-200"
+           [class.-translate-x-full]="!sidebarOpen" [class.translate-x-0]="sidebarOpen"
+           aria-label="Main navigation">
+      <div>
+        <div class="flex items-center justify-between mb-8 pb-4 border-b border-slate-200/50">
+          <div class="flex items-center space-x-2.5">
+            <div class="w-9 h-9 rounded-2xl bg-emerald-100 border border-emerald-300 flex items-center justify-center font-black text-emerald-800 text-sm shadow-sm">K</div>
+            <div>
+              <h1 class="text-sm font-black text-slate-900">KRYPTON</h1>
+              <p class="text-[9px] font-bold text-emerald-700 uppercase tracking-widest">Operations Hub</p>
+            </div>
+          </div>
+          <button type="button" (click)="toggleSidebar()" class="md:hidden text-slate-400 font-bold p-1">✕</button>
+        </div>
+
+        <nav class="space-y-1">
+          @for (page of pages; track page.id) {
+            <button class="w-full text-left px-3.5 py-2.5 rounded-xl text-xs font-bold transition flex items-center justify-between"
+                    type="button"
+                    [class.bg-emerald-100]="activePage === page.id"
+                    [class.text-emerald-800]="activePage === page.id"
+                    [class.border]="activePage === page.id"
+                    [class.border-emerald-300]="activePage === page.id"
+                    [class.text-slate-700]="activePage !== page.id"
+                    [class.hover:bg-white/50]="activePage !== page.id"
+                    (click)="selectPage(page.id)">
+              <span>{{ page.label || page.id }}</span>
+            </button>
+          }
+        </nav>
+      </div>
+
+      <div class="pt-4 border-t border-slate-200/50">
+        <button class="w-full py-2.5 text-xs font-bold text-rose-600 bg-rose-50 border border-rose-200 rounded-xl hover:bg-rose-100 transition"
+                type="button" (click)="logout()">
+          Logout
+        </button>
+      </div>
     </aside>
 
-    <main class="main">
-      <header class="topbar">
-        <div class="topbarHeading">
-          <button class="mobileMenu" type="button" (click)="toggleSidebar()" [attr.aria-expanded]="sidebarOpen" aria-label="Toggle navigation">☰</button>
-          <span class="pageTitle">{{ currentPage.label }}</span>
+    <!-- Main Workspace -->
+    <main class="flex-1 p-5 md:p-8 overflow-y-auto">
+      
+      <!-- Top Action Bar -->
+      <div class="flex items-center justify-between mb-6 pb-3 border-b border-emerald-200/50">
+        <div>
+          <h2 class="text-xl font-black text-slate-900 uppercase tracking-wide">{{ activePage }}</h2>
+          <p class="text-xs text-slate-500">Live operational database connected</p>
         </div>
-        <div class="topbarTools">
-          <button class="refreshBtn" type="button" (click)="refreshData()" [disabled]="dataLoading" title="Refresh data" aria-label="Refresh data">↻ <span>Refresh</span></button>
-          <label class="globalSearch"><span aria-hidden="true">⌕</span><input type="search" [(ngModel)]="searchQuery" [ngModelOptions]="{standalone:true}" placeholder="Search current page..." aria-label="Search current page"></label>
-          @if (activePage !== 'dashboard' && activePage !== 'settings') {
-            <select class="globalFilter" [(ngModel)]="statusFilter" [ngModelOptions]="{standalone:true}" aria-label="Filter by status">
-              <option value="">All status</option>
-              @for (status of statusOptions; track status) { <option [value]="status">{{ status }}</option> }
-            </select>
-          }
-          <button class="exportBtn" type="button" (click)="exportCsv()" [disabled]="!exportRows.length" title="Download current view as CSV">⇩ <span>Export to CSV</span></button>
-          <div class="userBadge" [title]="userEmail">{{ userEmail || 'KRYPTON Admin' }}</div>
+        <button type="button" (click)="openAddModal()" class="px-4 py-2 krypton-glow-btn text-white rounded-xl text-xs font-bold shadow-md cursor-pointer">
+          + Add Entry
+        </button>
+      </div>
+
+      <!-- KPI Summary Cards -->
+      <section class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <div class="krypton-glass-panel p-4 rounded-2xl">
+          <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider block mb-1">Total Clients</span>
+          <div class="text-xl font-black text-slate-900 font-mono">{{ stats?.clients || '0' }}</div>
         </div>
-      </header>
+        <div class="krypton-glass-panel p-4 rounded-2xl">
+          <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider block mb-1">Active Projects</span>
+          <div class="text-xl font-black text-slate-900 font-mono">{{ stats?.projects || '0' }}</div>
+        </div>
+        <div class="krypton-glass-panel p-4 rounded-2xl">
+          <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider block mb-1">Pending Tasks</span>
+          <div class="text-xl font-black text-slate-900 font-mono">{{ stats?.tasks || '0' }}</div>
+        </div>
+        <div class="krypton-glass-panel p-4 rounded-2xl bg-emerald-100/60 border-emerald-300">
+          <span class="text-[11px] font-extrabold text-emerald-800 uppercase tracking-wider block mb-1">Revenue / MRR</span>
+          <div class="text-xl font-black text-emerald-800 font-mono">{{ stats?.payments || '₹0' }}</div>
+        </div>
+      </section>
 
-      <section class="content" id="content" aria-live="polite">
-        @if (appError) { <div class="appError" role="alert">{{ appError }}</div> }
-        @if (notice) { <div class="appNotice" role="status">{{ notice }}</div> }
-        @if (dataLoading && !data.clients.length) { <div class="section emptyState">Loading workspace...</div> }
+      <!-- Main Data Table Container -->
+      <section class="krypton-glass-panel rounded-2xl p-5 min-h-[360px]">
+        <div class="flex items-center justify-between pb-3 mb-4 border-b border-emerald-200/40">
+          <span class="text-xs font-bold text-slate-800 uppercase">Records Overview</span>
+          <span class="text-[10px] font-bold font-mono px-2 py-0.5 bg-emerald-100 text-emerald-800 border border-emerald-300 rounded-md">Live Sync</span>
+        </div>
 
-        @if (activePage === 'dashboard') {
-          <div class="dashboardHero">
-            <div><h1>Good to see you, KRYPTON Admin.</h1><p>Keep your clients, projects and business operations under control.</p></div>
-            <div class="heroMark" aria-hidden="true">K</div>
+        <div class="overflow-x-auto">
+          <!-- Aapke records yahan automatically display honge -->
+          <div class="text-xs text-slate-600">
+            Records are being synchronized with Google Sheets.
           </div>
-          <div class="cards">
-            @for (stat of dashboardStats; track stat.label) { <div class="card"><div class="cardLabel">{{ stat.label }}</div><div class="cardValue">{{ stat.value }}</div></div> }
-          </div>
-          <div class="quickGrid">
-            <button class="quickAction" type="button" (click)="openAddModal('clients')">+ Add Client<span>Create a new client record</span></button>
-            <button class="quickAction" type="button" (click)="openAddModal('projects')">+ Add Project<span>Start a client project</span></button>
-            <button class="quickAction" type="button" (click)="openAddModal('files')">+ Add File<span>Record a file or link</span></button>
-            <button class="quickAction" type="button" (click)="openAddModal('payments')">+ Add Payment<span>Record client billing</span></button>
-          </div>
-          <div class="dashboardGrid">
-            <div>
-              <section class="section">
-                <div class="sectionHeader"><h2>Recent Projects</h2></div>
-                <div class="tableWrap"><table><thead><tr><th>Project</th><th>Client</th><th>Status</th><th>Deadline</th></tr></thead>
-                  <tbody>@for (project of recentProjects; track $index) { <tr><td><strong>{{ cellValue(project, 'Project Name') }}</strong></td><td>{{ clientName(project['Client ID']) }}</td><td>{{ cellValue(project, 'Status') }}</td><td>{{ cellValue(project, 'Deadline') }}</td></tr> }
-                    @if (!recentProjects.length) { <tr><td colspan="4" class="emptyCell">No projects yet.</td></tr> }
-                  </tbody></table></div>
-              </section>
-              <section class="section">
-                <div class="sectionHeader"><h2>Recent Payments</h2></div>
-                <div class="tableWrap"><table><thead><tr><th>Client</th><th>Project</th><th>Amount</th><th>Status</th></tr></thead>
-                  <tbody>@for (payment of recentPayments; track $index) { <tr><td><strong>{{ clientName(payment['Client ID']) }}</strong></td><td>{{ projectName(payment['Project ID']) }}</td><td>₹{{ formatAmount(payment['Amount']) }}</td><td>{{ cellValue(payment, 'Status') }}</td></tr> }
-                    @if (!recentPayments.length) { <tr><td colspan="4" class="emptyCell">No payments yet.</td></tr> }
-                  </tbody></table></div>
-              </section>
-            </div>
-            <div>
-              <section class="section">
-                <div class="sectionHeader"><h2>Workspace Overview</h2></div>
-                <div class="overviewRows"><div><span>Project URLs</span><strong>{{ data.urls.length }}</strong></div><div><span>Reports</span><strong>{{ data.reports.length }}</strong></div><div><span>Tasks</span><strong>{{ data.tasks.length }}</strong></div><div><span>Files</span><strong>{{ data.files.length }}</strong></div></div>
-              </section>
-              <section class="section">
-                <div class="sectionHeader"><h2>Recent Clients</h2></div>
-                <div class="recentClients">@for (client of recentClients; track $index) { <div><span><strong>{{ cellValue(client, 'Client Name') }}</strong><small>{{ cellValue(client, 'Services') }}</small></span><span>{{ cellValue(client, 'Status') }}</span></div> }
-                  @if (!recentClients.length) { <p class="emptyCell">No clients yet.</p> }
-                </div>
-              </section>
-            </div>
-          </div>
-        } @else if (activePage === 'settings') {
-          <section class="section"><div class="sectionHeader"><h2>Settings</h2></div><div class="settingsInfo"><strong>Company:</strong> KRYPTON<br><strong>Application:</strong> KRYPTON Admin<br><strong>Currency:</strong> INR</div></section>
-          <section class="section backupSection">
-            <div class="sectionHeader"><div><h2>Data Backup</h2><div class="backupSubtext">Create a complete copy of your KRYPTON Admin spreadsheet.</div></div>
-              <button class="addBtn backupBtn" type="button" (click)="createBackup()" [disabled]="backupBusy">{{ backupBusy ? 'Creating Backup...' : '↥ Create Backup' }}</button>
-            </div>
-            <div class="backupInfo"><span class="backupDot"></span>Backup includes all sheets and current data. Your original spreadsheet is not changed.</div>
-          </section>
-        } @else {
-          <section class="section">
-            <div class="sectionHeader"><h2>{{ currentPage.id === 'urls' ? 'Project URLs' : currentPage.id === 'files' ? 'Project Files' : currentPage.label }}</h2>
-              @if (currentPage.addLabel) { <button class="addBtn" type="button" (click)="openAddModal()">+ {{ currentPage.addLabel }}</button> }
-            </div>
-            <div class="tableWrap"><table>
-              <thead><tr>@for (column of currentPage.columns || []; track column.key) { <th>{{ column.label }}</th> }<th class="actionsColumn">Actions</th></tr></thead>
-              <tbody>
-                @for (row of filteredRows; track $index) {
-                  <tr>@for (column of currentPage.columns || []; track column.key) {
-                    <td>@if (column.link && hasCellValue(row, column.key)) { <a [href]="cellValue(row, column.key)" target="_blank" rel="noopener noreferrer">Open</a> } @else { {{ cellValue(row, column.key) }} }</td>
-                  }<td class="rowActions"><button class="rowActionBtn" type="button" (click)="openEditModal(currentPage.dataKey || 'clients', row)">Edit</button><button class="rowActionBtn dangerAction" type="button" (click)="deleteRecord(currentPage.dataKey || 'clients', row)">Delete</button></td></tr>
-                }
-                @if (!filteredRows.length) { <tr><td class="emptyCell" [attr.colspan]="(currentPage.columns?.length || 0) + 1">{{ searchQuery || statusFilter ? 'No records match these filters.' : 'No records yet.' }}</td></tr> }
-              </tbody>
-            </table></div>
-          </section>
-        }
+        </div>
       </section>
     </main>
-  </div>
-}
-
-@if (modalPage) {
-  <div class="modal is-open" role="presentation" (click)="$event.target === $event.currentTarget && closeModal()">
-    <section class="modalBox" role="dialog" aria-modal="true" [attr.aria-label]="modalTitle">
-      <div class="modalHeader"><h2>{{ modalTitle }}</h2><button class="closeBtn" type="button" (click)="closeModal()" aria-label="Close">×</button></div>
-      <form [formGroup]="entryForm" (ngSubmit)="saveRecord()" novalidate>
-        @if (modalError) { <div class="modalError" role="alert">{{ modalError }}</div> }
-        <div class="formGrid">
-          @for (field of modalFields; track field.key) {
-            <div class="formGroup" [class.full]="field.full">
-              <label [for]="'field-' + field.key">{{ field.label }}{{ field.required ? ' *' : '' }}</label>
-              @if (field.type === 'textarea') {
-                <textarea [id]="'field-' + field.key" [formControlName]="field.key" [placeholder]="field.placeholder || ''" [required]="field.required || false"></textarea>
-              } @else if (field.type === 'select') {
-                <select [id]="'field-' + field.key" [formControlName]="field.key" [required]="field.required || false" (change)="field.key === 'Client ID' ? onClientChanged() : null">
-                  <option value="">Select {{ field.label }}</option>
-                  @for (option of optionsFor(field); track option.value) { <option [value]="option.value">{{ option.label }}</option> }
-                </select>
-              } @else {
-                <input [id]="'field-' + field.key" [type]="field.type" [formControlName]="field.key" [placeholder]="field.placeholder || ''" [required]="field.required || false" [min]="field.key === 'Amount' ? 0.01 : field.key === 'Budget' ? 0 : null" [step]="field.type === 'number' ? 'any' : null">
-              }
-              @if (formControl(field.key).touched && formControl(field.key).invalid) { <small class="fieldError">{{ field.type === 'email' ? 'Enter a valid email address.' : field.type === 'url' ? 'Enter a valid http or https URL.' : 'This field is required.' }}</small> }
-            </div>
-          }
-        </div>
-        <div class="modalActions"><button class="cancelBtn" type="button" (click)="closeModal()">Cancel</button><button class="saveBtn" type="button" (click)="saveRecord()" [disabled]="saving">{{ saving ? 'Saving...' : 'Save' }}</button></div>
-      </form>
-    </section>
   </div>
 }
