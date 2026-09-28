@@ -1,6 +1,6 @@
 const SESSION_COOKIE = 'krypton_session';
 const SESSION_LIFETIME_MS = 12 * 60 * 60 * 1000;
-const PASSWORD_ITERATIONS = 310000;
+const PASSWORD_ITERATIONS = 100000;
 const encoder = new TextEncoder();
 
 export function base64Url(bytes) {

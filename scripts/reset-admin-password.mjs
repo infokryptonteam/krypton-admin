@@ -20,7 +20,7 @@ if (password.length < 12 || password.length > 1024) {
 
 const saltBytes = randomBytes(16);
 const salt = saltBytes.toString('base64url');
-const passwordHash = pbkdf2Sync(password, saltBytes, 310000, 32, 'sha256').toString('base64url');
+const passwordHash = pbkdf2Sync(password, saltBytes, 100000, 32, 'sha256').toString('base64url');
 const escapedEmail = email.replace(/'/g, "''");
 const sql = `UPDATE users SET password_hash = '${passwordHash}', password_salt = '${salt}' WHERE lower(email) = lower('${escapedEmail}') RETURNING email;\nDELETE FROM sessions WHERE user_id IN (SELECT id FROM users WHERE lower(email) = lower('${escapedEmail}'));\n`;
 
