@@ -32,11 +32,12 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-// State Store
+// State Store - ALL 8 ENTITIES INCLUDED
 const state = {
   currentTab: "dashboard",
   searchQuery: "",
   data: {
+    users: [],
     clients: [],
     projects: [],
     tasks: [],
@@ -139,9 +140,9 @@ if (closeSidebarBtn && sidebar) {
   });
 }
 
-// ================= 5. REALTIME DATA SUBSCRIPTIONS =================
+// ================= 5. REALTIME DATA SUBSCRIPTIONS (ALL 8 COLLECTIONS) =================
 let unsubscribers = [];
-const collections = ["clients", "projects", "tasks", "recurring", "payments", "social", "team"];
+const collections = ["users", "clients", "projects", "tasks", "recurring", "payments", "social", "team"];
 
 function initLiveSubscriptions() {
   unsubscribers.forEach(unsub => unsub());
@@ -154,6 +155,8 @@ function initLiveSubscriptions() {
       state.data[colName] = records;
       updateDashboardCounts();
       renderActiveTab();
+    }, (err) => {
+      console.warn(`Collection ${colName} listener notice:`, err);
     });
     unsubscribers.push(unsub);
   });
@@ -184,15 +187,21 @@ function updateDashboardCounts() {
   if (elRev) elRev.textContent = `₹${totalRev.toLocaleString()}`;
 }
 
-// ================= 7. FORM SCHEMAS (WITH COMBOBOX & FILE/REEL URLS) =================
+// ================= 7. FORM SCHEMAS (ZERO BLANK OPTIONS, ROBUST SELECTS) =================
 const schemas = {
+  users: [
+    { name: "name", label: "User / Member Name", type: "text", required: true },
+    { name: "email", label: "Email Address", type: "email", required: true },
+    { name: "role", label: "Access Role", type: "select", options: ["Admin", "Project Manager", "Editor / Designer", "Guest"] },
+    { name: "status", label: "Account Status", type: "select", options: ["Active", "Inactive", "Suspended"] }
+  ],
   clients: [
     { name: "name", label: "Client or Business Name", type: "text", required: true },
     { name: "phone", label: "WhatsApp / Contact Phone", type: "text", required: true },
     { 
       name: "service", 
-      label: "Selected Service (Pick or Type Custom)", 
-      type: "datalist", 
+      label: "Selected Service", 
+      type: "select-with-custom", 
       options: [
         "Web Development", 
         "Short-form Video Editing", 
@@ -203,7 +212,6 @@ const schemas = {
         "Full Agency Retainer", 
         "SEO Optimization & Strategy"
       ],
-      placeholder: "Type custom service or choose below...",
       required: true 
     },
     { name: "status", label: "Relationship Status", type: "select", options: ["Active Client", "New Lead", "Completed"] }
@@ -213,7 +221,7 @@ const schemas = {
     { name: "client", label: "Client Name", type: "text", required: true },
     { name: "budget", label: "Project Value (₹)", type: "number", required: true },
     { name: "deadline", label: "Delivery Due Date", type: "date", required: true },
-    { name: "status", label: "Stage", type: "select", options: ["Planning", "In Progress", "In Review", "Completed"] },
+    { name: "status", label: "Execution Stage", type: "select", options: ["Planning", "In Progress", "In Review", "Completed"] },
     { name: "fileUrl", label: "Deliverable / Asset URL (Drive / Figma / Canva)", type: "url", placeholder: "https://...", required: false }
   ],
   tasks: [
@@ -227,8 +235,8 @@ const schemas = {
     { name: "monthlyFee", label: "Monthly Retainer (₹)", type: "number", required: true },
     { 
       name: "serviceScope", 
-      label: "Scope Package (Pick or Type Custom)", 
-      type: "datalist", 
+      label: "Scope Package", 
+      type: "select-with-custom", 
       options: [
         "Daily Reels / Shorts Package (30/mo)", 
         "Alternate Days Reels (15/mo)", 
@@ -236,13 +244,12 @@ const schemas = {
         "Website Maintenance & SEO", 
         "Full Content Agency Retainer"
       ],
-      placeholder: "e.g. 30 Reels / Month",
       required: true 
     },
-    { name: "monthlyQuota", label: "Monthly Target Deliverables", type: "text", placeholder: "e.g. 30 Reels / Month", required: true },
+    { name: "monthlyQuota", label: "Monthly Target Quota", type: "text", placeholder: "e.g. 30 Reels / Month", required: true },
     { name: "completedCount", label: "Delivered Till Date", type: "text", placeholder: "e.g. 14 Delivered", required: false },
     { name: "dailyUpdate", label: "Today's Work Log / Topic", type: "text", placeholder: "e.g. Reel #14 rendered & published", required: false },
-    { name: "workUrl", label: "Delivered Reel / Post / Asset URL", type: "url", placeholder: "https://instagram.com/reel/... ya Drive Link", required: false },
+    { name: "workUrl", label: "Delivered Reel / Post / Asset URL", type: "url", placeholder: "https://instagram.com/reel/... or Drive Link", required: false },
     { name: "renewalDay", label: "Billing Cycle Day (e.g. 1st or 10th)", type: "text", required: true },
     { name: "subscriptionStatus", label: "Retainer State", type: "select", options: ["Active", "Paused", "Cancelled"] }
   ],
@@ -254,7 +261,7 @@ const schemas = {
   ],
   social: [
     { name: "title", label: "Content / Reel Headline", type: "text", required: true },
-    { name: "platform", label: "Channel", type: "select", options: ["Instagram Reel", "YouTube Shorts", "YouTube Long-form", "LinkedIn Post"] },
+    { name: "platform", label: "Distribution Channel", type: "select", options: ["Instagram Reel", "YouTube Shorts", "YouTube Long-form", "LinkedIn Post"] },
     { name: "scheduledDate", label: "Publish Date", type: "date", required: true },
     { name: "status", label: "Production Status", type: "select", options: ["Idea", "Script Ready", "Editing Done", "Posted"] },
     { name: "fileUrl", label: "Media / Asset Link (Drive / Post URL)", type: "url", placeholder: "https://...", required: false }
@@ -271,12 +278,14 @@ const schemas = {
 const entryModal = document.getElementById("entryModal");
 const openModalBtn = document.getElementById("openModalBtn");
 const closeModalBtn = document.getElementById("closeModalBtn");
+const cancelModalBtn = document.getElementById("cancelModalBtn");
 const universalForm = document.getElementById("universalForm");
 const formFieldsContainer = document.getElementById("formFieldsContainer");
 const modalTitle = document.getElementById("modalTitle");
 
 function openModalForTab(tab) {
   const displayNames = {
+    users: "User / Team Admin",
     clients: "Client",
     projects: "Project",
     tasks: "Task",
@@ -287,6 +296,8 @@ function openModalForTab(tab) {
   };
 
   const target = tab === "dashboard" ? "clients" : tab;
+  if (!schemas[target]) return;
+
   if (modalTitle) modalTitle.textContent = `New ${displayNames[target] || "Record"}`;
   if (formFieldsContainer) formFieldsContainer.innerHTML = "";
   const fields = schemas[target] || [];
@@ -295,32 +306,59 @@ function openModalForTab(tab) {
     const wrap = document.createElement("div");
     wrap.innerHTML = `<label class="block text-xs font-bold text-slate-700 mb-1">${f.label}</label>`;
 
-    if (f.type === "datalist") {
-      const listId = `dl_${f.name}_${Date.now()}`;
-      const input = document.createElement("input");
-      input.setAttribute("list", listId);
-      input.name = f.name;
-      input.placeholder = f.placeholder || "Type custom or select from list...";
-      if (f.required) input.required = true;
-      input.className = "w-full bg-slate-50 border border-slate-200 text-xs px-3.5 py-2.5 rounded-xl text-slate-800 outline-none krypton-input transition placeholder-slate-400";
+    if (f.type === "select-with-custom") {
+      const select = document.createElement("select");
+      select.className = "w-full bg-slate-50 border border-slate-200 text-xs px-3.5 py-2.5 rounded-xl text-slate-800 outline-none krypton-input transition";
       
-      const datalist = document.createElement("datalist");
-      datalist.id = listId;
-      (f.options || []).forEach(opt => {
+      f.options.forEach(opt => {
         const option = document.createElement("option");
         option.value = opt;
-        datalist.appendChild(option);
+        option.textContent = opt;
+        select.appendChild(option);
       });
-      wrap.appendChild(input);
-      wrap.appendChild(datalist);
+
+      const customOption = document.createElement("option");
+      customOption.value = "__CUSTOM__";
+      customOption.textContent = "✏️ + Custom / Type Your Own...";
+      select.appendChild(customOption);
+
+      const customInput = document.createElement("input");
+      customInput.type = "text";
+      customInput.placeholder = "Type your custom service name here...";
+      customInput.className = "w-full mt-2 bg-white border border-krypton-border text-xs px-3.5 py-2 rounded-xl text-slate-900 outline-none krypton-input hidden";
+
+      const hiddenInput = document.createElement("input");
+      hiddenInput.type = "hidden";
+      hiddenInput.name = f.name;
+      hiddenInput.value = f.options[0];
+
+      select.addEventListener("change", () => {
+        if (select.value === "__CUSTOM__") {
+          customInput.classList.remove("hidden");
+          customInput.focus();
+          hiddenInput.value = customInput.value.trim();
+        } else {
+          customInput.classList.add("hidden");
+          hiddenInput.value = select.value;
+        }
+      });
+
+      customInput.addEventListener("input", () => {
+        hiddenInput.value = customInput.value.trim() || select.options[0].value;
+      });
+
+      wrap.appendChild(select);
+      wrap.appendChild(customInput);
+      wrap.appendChild(hiddenInput);
     } 
     else if (f.type === "select") {
       const select = document.createElement("select");
       select.name = f.name;
       select.className = "w-full bg-slate-50 border border-slate-200 text-xs px-3.5 py-2.5 rounded-xl text-slate-800 outline-none krypton-input transition";
-      f.options.forEach(opt => {
+      (f.options || []).forEach(opt => {
         const option = document.createElement("option");
         option.value = opt;
+        option.textContent = opt;
         select.appendChild(option);
       });
       wrap.appendChild(select);
@@ -343,18 +381,18 @@ function openModalForTab(tab) {
   }
 }
 
+function hideModal() {
+  if (entryModal) {
+    entryModal.classList.add("hidden");
+    entryModal.classList.remove("flex");
+  }
+}
+
 if (openModalBtn) {
   openModalBtn.addEventListener("click", () => openModalForTab(state.currentTab));
 }
-
-if (closeModalBtn) {
-  closeModalBtn.addEventListener("click", () => {
-    if (entryModal) {
-      entryModal.classList.add("hidden");
-      entryModal.classList.remove("flex");
-    }
-  });
-}
+if (closeModalBtn) closeModalBtn.addEventListener("click", hideModal);
+if (cancelModalBtn) cancelModalBtn.addEventListener("click", hideModal);
 
 if (universalForm) {
   universalForm.addEventListener("submit", async (e) => {
@@ -366,10 +404,10 @@ if (universalForm) {
     const targetCollection = state.currentTab === "dashboard" ? "clients" : state.currentTab;
 
     try {
-      // 1. Save to Firebase
+      // 1. Firebase Firestore Save
       await addDoc(collection(db, targetCollection), payload);
 
-      // 2. Dual Sync to Google Sheets
+      // 2. Google Sheets Dual Sync
       if (GOOGLE_SHEET_WEBHOOK_URL) {
         fetch(GOOGLE_SHEET_WEBHOOK_URL, {
           method: "POST",
@@ -382,12 +420,9 @@ if (universalForm) {
         }).catch(err => console.warn("Google Sheet sync notice:", err));
       }
 
-      showToast("Saved Successfully", "Data updated in Firebase and Google Sheets.");
+      showToast("Saved Successfully", "Data updated in Firebase & Google Sheets.");
       universalForm.reset();
-      if (entryModal) {
-        entryModal.classList.add("hidden");
-        entryModal.classList.remove("flex");
-      }
+      hideModal();
     } catch (err) {
       showToast("Error", err.message, false);
     }
@@ -395,7 +430,7 @@ if (universalForm) {
 }
 
 window.deleteEntity = async (col, id) => {
-  if (confirm("Delete this entry from workspace records?")) {
+  if (confirm("Delete this entry permanently from workspace records?")) {
     await deleteDoc(doc(db, col, id));
     showToast("Deleted", "Record has been removed.");
   }
@@ -482,7 +517,7 @@ if (refreshBtn) {
   });
 }
 
-// ================= 11. RENDER ENGINE (KRYPTON EMERALD ACCENTS) =================
+// ================= 11. RENDER ENGINE (ERROR-FREE TABLES) =================
 const container = document.getElementById("tabContentContainer");
 const sectionTitle = document.getElementById("currentSectionTitle");
 const newEntryBtnLabel = document.getElementById("newEntryBtnLabel");
@@ -490,6 +525,7 @@ const recordCountLabel = document.getElementById("recordCountLabel");
 
 const titleMap = {
   dashboard: "Overview Dashboard",
+  users: "Users & Security Directory",
   clients: "Clients Directory",
   projects: "Project Pipelines",
   tasks: "Operational Tasks",
@@ -502,6 +538,7 @@ const titleMap = {
 
 const buttonLabelMap = {
   dashboard: "Add Client",
+  users: "Add User",
   clients: "Add Client",
   projects: "Add Project",
   tasks: "Add Task",
@@ -544,7 +581,7 @@ function renderActiveTab() {
     container.innerHTML = `
       <div class="py-16 text-center text-slate-400 text-xs">
         <i data-lucide="inbox" class="w-8 h-8 mx-auto mb-2 text-slate-300"></i>
-        No active records found in this category.
+        No active records logged in this partition. Click "${buttonLabelMap[tab] || "Add Entry"}" above.
       </div>
     `;
     if (window.lucide) lucide.createIcons();
@@ -566,18 +603,19 @@ function renderActiveTab() {
   list.forEach(row => {
     tableHtml += `<tr class="hover:bg-slate-50/70 transition">`;
     (schemas[tab] || []).forEach(field => {
-      let val = row[field.name] || "-";
+      let rawVal = row[field.name];
+      let val = (rawVal !== undefined && rawVal !== null && String(rawVal).trim() !== "") ? String(rawVal).trim() : "-";
       
       // File / Reel / Media URL handling
       if (field.name === "fileUrl" || field.name === "workUrl") {
-        if (val && val !== "-" && (val.startsWith("http://") || val.startsWith("https://"))) {
+        if (val !== "-" && (val.startsWith("http://") || val.startsWith("https://"))) {
           const btnText = field.name === "workUrl" ? "View Reel" : "Open Link";
           val = `<a href="${val}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center space-x-1 px-2.5 py-1 bg-krypton-tint hover:bg-emerald-100 text-krypton-dark rounded-lg font-bold transition border border-krypton-border">
             <span>${btnText}</span>
             <i data-lucide="external-link" class="w-3 h-3 text-krypton"></i>
           </a>`;
         } else {
-          val = `<span class="text-slate-400 italic">None</span>`;
+          val = `<span class="text-slate-400 italic">No URL</span>`;
         }
       }
       else if (field.name === "completedCount") {
@@ -595,7 +633,7 @@ function renderActiveTab() {
           badgeColor = "bg-krypton-tint text-krypton-dark font-bold border-krypton-border";
         } else if (val === "In Progress" || val === "High" || val === "Urgent") {
           badgeColor = "bg-amber-50 text-amber-800 border-amber-200 font-bold";
-        } else if (val === "Cancelled" || val === "On Leave") {
+        } else if (val === "Cancelled" || val === "On Leave" || val === "Suspended") {
           badgeColor = "bg-rose-50 text-rose-700 border-rose-200 font-bold";
         }
         val = `<span class="px-2.5 py-0.5 rounded-full text-[11px] border ${badgeColor}">${val}</span>`;
@@ -624,7 +662,6 @@ function renderDashboardView() {
 
   container.innerHTML = `
     <div class="p-6 space-y-6">
-      <!-- Clean Welcome Banner with Krypton Glow -->
       <div class="bg-gradient-to-r from-slate-900 to-slate-800 text-white rounded-2xl p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-sm relative overflow-hidden">
         <div class="space-y-1 z-10">
           <span class="inline-flex items-center gap-1.5 bg-white/10 text-krypton-bright px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-wide uppercase">
@@ -639,10 +676,7 @@ function renderDashboardView() {
         <div class="absolute -right-8 -bottom-8 w-36 h-36 bg-krypton/20 rounded-full blur-2xl pointer-events-none"></div>
       </div>
 
-      <!-- Activity Grid -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        
-        <!-- Active Projects -->
         <div class="border border-slate-200 rounded-2xl p-4 bg-white shadow-sm">
           <div class="flex items-center justify-between mb-3 pb-2 border-b border-slate-100">
             <h4 class="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2">
@@ -666,7 +700,6 @@ function renderDashboardView() {
           </div>
         </div>
 
-        <!-- Priority Tasks -->
         <div class="border border-slate-200 rounded-2xl p-4 bg-white shadow-sm">
           <div class="flex items-center justify-between mb-3 pb-2 border-b border-slate-100">
             <h4 class="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2">
@@ -727,7 +760,7 @@ function renderReportsView() {
 document.querySelectorAll(".tab-btn").forEach(btn => {
   btn.addEventListener("click", () => {
     document.querySelectorAll(".tab-btn").forEach(b => {
-      b.className = "tab-btn w-full flex items-center space-x-3 px-3 py-2 rounded-xl text-xs font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition";
+      b.className = "tab-btn w-full flex items-center space-x-3 px-3 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition";
     });
     btn.className = "tab-btn w-full flex items-center space-x-3 px-3 py-2 rounded-xl text-xs font-bold bg-krypton-tint text-krypton-dark border border-krypton-border transition";
     
