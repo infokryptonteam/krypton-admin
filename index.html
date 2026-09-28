@@ -11,7 +11,7 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
-  <!-- Google Fonts: Plus Jakarta Sans -->
+  <!-- Google Fonts: Plus Jakarta Sans & JetBrains Mono -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
@@ -29,7 +29,7 @@
               DEFAULT: '#10D03A',
               bright: '#00FF4D',
               hover: '#0EB834',
-              tint: '#ECFDF3',
+              tint: '#E8FDF0',
               border: '#A7F3D0',
               dark: '#036824'
             }
@@ -40,14 +40,73 @@
   </script>
 
   <style>
+    /* Ambient Animated Mesh Background */
     body {
-      background-color: #F8FAFC;
+      background-color: #F0F6F3;
       color: #0F172A;
+      position: relative;
+      overflow-x: hidden;
     }
+
+    /* Floating Ambient Gradient Spheres */
+    .ambient-sphere {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(85px);
+      z-index: 0;
+      pointer-events: none;
+      opacity: 0.55;
+      animation: floatMotion 18s ease-in-out infinite alternate;
+    }
+    .ambient-1 {
+      top: -10%;
+      left: 15%;
+      width: 480px;
+      height: 480px;
+      background: radial-gradient(circle, rgba(16, 208, 58, 0.28) 0%, rgba(167, 243, 208, 0.1) 70%);
+      animation-duration: 22s;
+    }
+    .ambient-2 {
+      bottom: 5%;
+      right: 5%;
+      width: 550px;
+      height: 550px;
+      background: radial-gradient(circle, rgba(56, 189, 248, 0.16) 0%, rgba(16, 208, 58, 0.18) 60%);
+      animation-duration: 26s;
+    }
+    .ambient-3 {
+      top: 40%;
+      left: 45%;
+      width: 420px;
+      height: 420px;
+      background: radial-gradient(circle, rgba(167, 243, 208, 0.35) 0%, rgba(240, 246, 243, 0) 70%);
+      animation-duration: 20s;
+    }
+
+    @keyframes floatMotion {
+      0% {
+        transform: translate(0px, 0px) scale(1);
+      }
+      50% {
+        transform: translate(45px, 35px) scale(1.08);
+      }
+      100% {
+        transform: translate(-30px, 50px) scale(0.96);
+      }
+    }
+
+    /* Micro-dot subtle pattern */
+    .bg-dot-pattern {
+      background-image: radial-gradient(#CBD5E1 0.75px, transparent 0.75px);
+      background-size: 24px 24px;
+    }
+
+    /* Clean Glassmorphic Cards */
     .krypton-card {
-      background: #FFFFFF;
-      border: 1px solid #E2E8F0;
-      box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.03);
+      background: rgba(255, 255, 255, 0.88);
+      backdrop-filter: blur(14px);
+      border: 1px solid rgba(226, 232, 240, 0.95);
+      box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.04);
     }
     .krypton-glow-btn {
       background-color: #10D03A;
@@ -62,7 +121,7 @@
       box-shadow: 0 0 0 3px rgba(16, 208, 58, 0.18);
     }
     .krypton-logo-badge {
-      background: linear-gradient(145deg, #ECFDF3 0%, #D1FAE5 100%);
+      background: linear-gradient(145deg, #E8FDF0 0%, #D1FAE5 100%);
       border: 1.5px solid #A7F3D0;
     }
     ::-webkit-scrollbar {
@@ -81,10 +140,15 @@
     }
   </style>
 </head>
-<body class="min-h-screen flex flex-col md:flex-row antialiased selection:bg-krypton-tint selection:text-krypton-dark">
+<body class="bg-dot-pattern min-h-screen flex flex-col md:flex-row antialiased selection:bg-krypton-tint selection:text-krypton-dark relative">
+
+  <!-- Background Animated Glow Spheres -->
+  <div class="ambient-sphere ambient-1"></div>
+  <div class="ambient-sphere ambient-2"></div>
+  <div class="ambient-sphere ambient-3"></div>
 
   <!-- ================= NOTIFICATION TOAST ================= -->
-  <div id="toastNotification" class="fixed top-5 right-5 z-50 transform translate-y-[-160%] opacity-0 transition-all duration-300 pointer-events-none flex items-center space-x-3 px-4 py-3 rounded-2xl bg-white border border-krypton-border shadow-xl max-w-sm">
+  <div id="toastNotification" class="fixed top-5 right-5 z-50 transform translate-y-[-160%] opacity-0 transition-all duration-300 pointer-events-none flex items-center space-x-3 px-4 py-3 rounded-2xl bg-white/95 backdrop-blur border border-krypton-border shadow-xl max-w-sm">
     <div id="toastIcon" class="w-8 h-8 rounded-xl bg-krypton-tint border border-krypton-border flex items-center justify-center text-krypton-dark flex-shrink-0">
       <i data-lucide="check" class="w-4 h-4 text-krypton-dark"></i>
     </div>
@@ -95,8 +159,8 @@
   </div>
 
   <!-- ================= AUTHENTICATION OVERLAY ================= -->
-  <div id="authScreen" class="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4">
-    <div class="bg-white border border-slate-200 w-full max-w-md rounded-3xl p-8 shadow-2xl relative">
+  <div id="authScreen" class="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-md flex items-center justify-center p-4">
+    <div class="bg-white/95 border border-slate-200 w-full max-w-md rounded-3xl p-8 shadow-2xl relative">
       <div class="flex items-center space-x-3.5 mb-6">
         <div class="w-14 h-14 rounded-2xl krypton-logo-badge p-1.5 flex items-center justify-center shadow-sm overflow-hidden flex-shrink-0">
           <img src="./25535.png" onerror="this.onerror=null; this.src='./logo.png';" alt="Krypton Logo" class="w-full h-full object-contain drop-shadow">
@@ -117,11 +181,11 @@
       <form id="loginForm" class="space-y-4">
         <div>
           <label class="block text-xs font-bold text-slate-700 mb-1.5">Admin Email</label>
-          <input type="email" id="authEmail" required placeholder="admin@krypton.com" class="w-full bg-slate-50 border border-slate-200 text-xs px-3.5 py-2.5 rounded-xl outline-none krypton-input transition text-slate-900 placeholder-slate-400">
+          <input type="email" id="authEmail" required placeholder="admin@krypton.com" class="w-full bg-slate-50/80 border border-slate-200 text-xs px-3.5 py-2.5 rounded-xl outline-none krypton-input transition text-slate-900 placeholder-slate-400">
         </div>
         <div>
           <label class="block text-xs font-bold text-slate-700 mb-1.5">Password</label>
-          <input type="password" id="authPass" required placeholder="••••••••••••" class="w-full bg-slate-50 border border-slate-200 text-xs px-3.5 py-2.5 rounded-xl outline-none krypton-input transition text-slate-900 placeholder-slate-400">
+          <input type="password" id="authPass" required placeholder="••••••••••••" class="w-full bg-slate-50/80 border border-slate-200 text-xs px-3.5 py-2.5 rounded-xl outline-none krypton-input transition text-slate-900 placeholder-slate-400">
         </div>
         <p id="authError" class="text-xs font-semibold text-rose-600 hidden bg-rose-50 p-2.5 rounded-xl border border-rose-200"></p>
         <button type="submit" class="w-full py-2.5 krypton-glow-btn text-white font-bold text-xs rounded-xl transition shadow-md active:scale-[0.99]">
@@ -132,7 +196,7 @@
   </div>
 
   <!-- ================= MOBILE HEADER ================= -->
-  <header class="md:hidden bg-white border-b border-slate-200 px-4 py-3 flex items-center justify-between sticky top-0 z-30">
+  <header class="md:hidden bg-white/80 backdrop-blur-md border-b border-slate-200 px-4 py-3 flex items-center justify-between sticky top-0 z-30">
     <div class="flex items-center space-x-2.5">
       <div class="w-9 h-9 rounded-xl krypton-logo-badge p-1 flex items-center justify-center overflow-hidden">
         <img src="./25535.png" onerror="this.onerror=null; this.src='./logo.png';" alt="Krypton Logo" class="w-full h-full object-contain">
@@ -144,10 +208,10 @@
     </button>
   </header>
 
-  <!-- ================= SIDEBAR NAVIGATION ================= -->
-  <aside id="sidebar" class="fixed md:static inset-y-0 left-0 z-40 w-64 bg-white border-r border-slate-200 flex flex-col justify-between transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out">
+  <!-- ================= SIDEBAR ================= -->
+  <aside id="sidebar" class="fixed md:static inset-y-0 left-0 z-40 w-64 bg-white/85 backdrop-blur-xl border-r border-slate-200/90 flex flex-col justify-between transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out">
     <div>
-      <div class="p-5 border-b border-slate-100 flex items-center justify-between">
+      <div class="p-5 border-b border-slate-100/80 flex items-center justify-between">
         <div class="flex items-center space-x-3">
           <div class="w-11 h-11 rounded-2xl krypton-logo-badge p-1 flex items-center justify-center shadow-sm overflow-hidden flex-shrink-0">
             <img src="./25535.png" onerror="this.onerror=null; this.src='./logo.png';" alt="Krypton Logo" class="w-full h-full object-contain">
@@ -165,53 +229,53 @@
         </button>
       </div>
 
-      <!-- Navigation Tabs (Exact Sequence Matching Google Sheet) -->
+      <!-- Navigation Tabs (Exact Sequence) -->
       <nav class="p-3 space-y-1 overflow-y-auto max-h-[calc(100vh-170px)]">
         <button class="tab-btn w-full flex items-center space-x-3 px-3 py-2 rounded-xl text-xs font-bold bg-krypton-tint text-krypton-dark border border-krypton-border transition" data-tab="dashboard">
           <i data-lucide="layout-dashboard" class="w-4 h-4 text-krypton"></i>
           <span>Dashboard</span>
         </button>
-        <button class="tab-btn w-full flex items-center space-x-3 px-3 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition" data-tab="users">
+        <button class="tab-btn w-full flex items-center space-x-3 px-3 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-50/80 hover:text-slate-900 transition" data-tab="users">
           <i data-lucide="shield-check" class="w-4 h-4 text-slate-400"></i>
           <span>Users</span>
         </button>
-        <button class="tab-btn w-full flex items-center space-x-3 px-3 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition" data-tab="clients">
+        <button class="tab-btn w-full flex items-center space-x-3 px-3 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-50/80 hover:text-slate-900 transition" data-tab="clients">
           <i data-lucide="users" class="w-4 h-4 text-slate-400"></i>
           <span>Clients</span>
         </button>
-        <button class="tab-btn w-full flex items-center space-x-3 px-3 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition" data-tab="projects">
+        <button class="tab-btn w-full flex items-center space-x-3 px-3 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-50/80 hover:text-slate-900 transition" data-tab="projects">
           <i data-lucide="folder-kanban" class="w-4 h-4 text-slate-400"></i>
           <span>Projects</span>
         </button>
-        <button class="tab-btn w-full flex items-center space-x-3 px-3 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition" data-tab="tasks">
+        <button class="tab-btn w-full flex items-center space-x-3 px-3 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-50/80 hover:text-slate-900 transition" data-tab="tasks">
           <i data-lucide="check-square" class="w-4 h-4 text-slate-400"></i>
           <span>Tasks</span>
         </button>
-        <button class="tab-btn w-full flex items-center space-x-3 px-3 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition" data-tab="payments">
+        <button class="tab-btn w-full flex items-center space-x-3 px-3 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-50/80 hover:text-slate-900 transition" data-tab="payments">
           <i data-lucide="receipt" class="w-4 h-4 text-slate-400"></i>
           <span>Payments</span>
         </button>
-        <button class="tab-btn w-full flex items-center space-x-3 px-3 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition" data-tab="recurring">
+        <button class="tab-btn w-full flex items-center space-x-3 px-3 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-50/80 hover:text-slate-900 transition" data-tab="recurring">
           <i data-lucide="refresh-cw" class="w-4 h-4 text-slate-400"></i>
           <span>Recurring Clients</span>
         </button>
-        <button class="tab-btn w-full flex items-center space-x-3 px-3 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition" data-tab="social">
+        <button class="tab-btn w-full flex items-center space-x-3 px-3 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-50/80 hover:text-slate-900 transition" data-tab="social">
           <i data-lucide="share-2" class="w-4 h-4 text-slate-400"></i>
           <span>Social Posts</span>
         </button>
-        <button class="tab-btn w-full flex items-center space-x-3 px-3 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition" data-tab="reports">
+        <button class="tab-btn w-full flex items-center space-x-3 px-3 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-50/80 hover:text-slate-900 transition" data-tab="reports">
           <i data-lucide="pie-chart" class="w-4 h-4 text-slate-400"></i>
           <span>Reports</span>
         </button>
-        <button class="tab-btn w-full flex items-center space-x-3 px-3 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition" data-tab="team">
+        <button class="tab-btn w-full flex items-center space-x-3 px-3 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-50/80 hover:text-slate-900 transition" data-tab="team">
           <i data-lucide="user-check" class="w-4 h-4 text-slate-400"></i>
           <span>Team</span>
         </button>
       </nav>
     </div>
 
-    <!-- Active User & Sign Out -->
-    <div class="p-3.5 border-t border-slate-100 bg-slate-50/50">
+    <!-- Active User -->
+    <div class="p-3.5 border-t border-slate-100 bg-slate-50/60">
       <div class="flex items-center justify-between">
         <div class="flex items-center space-x-2.5 min-w-0">
           <div class="w-8 h-8 rounded-full bg-krypton-tint text-krypton-dark font-bold border border-krypton-border flex items-center justify-center text-xs uppercase flex-shrink-0">
@@ -230,29 +294,29 @@
   </aside>
 
   <!-- ================= MAIN VIEWPORT ================= -->
-  <main class="flex-1 flex flex-col min-w-0 overflow-y-auto">
+  <main class="flex-1 flex flex-col min-w-0 overflow-y-auto relative z-10">
     
     <!-- Top Action Toolbar -->
-    <div class="bg-white border-b border-slate-200 px-4 md:px-8 py-3 flex flex-wrap items-center justify-between gap-3 sticky top-0 z-20">
+    <div class="bg-white/80 backdrop-blur-md border-b border-slate-200/90 px-4 md:px-8 py-3 flex flex-wrap items-center justify-between gap-3 sticky top-0 z-20">
       <div class="flex items-center space-x-3 flex-1 min-w-[200px] max-w-sm">
         <div class="relative w-full">
           <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3 top-2.5 pointer-events-none"></i>
-          <input type="text" id="globalSearch" placeholder="Search records across tab..." class="w-full bg-slate-50 border border-slate-200 text-xs pl-9 pr-3 py-2 rounded-xl outline-none krypton-input text-slate-800 placeholder-slate-400 transition">
+          <input type="text" id="globalSearch" placeholder="Search records across tab..." class="w-full bg-slate-50/90 border border-slate-200 text-xs pl-9 pr-3 py-2 rounded-xl outline-none krypton-input text-slate-800 placeholder-slate-400 transition">
         </div>
       </div>
 
       <div class="flex items-center space-x-2">
-        <span class="hidden lg:inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-krypton-tint border border-krypton-border text-[11px] font-bold text-krypton-dark">
+        <span class="hidden lg:inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-krypton-tint/80 border border-krypton-border text-[11px] font-bold text-krypton-dark">
           <span class="w-2 h-2 rounded-full bg-krypton animate-pulse"></span>
           <span>Google Sheet Connected</span>
         </span>
 
-        <button id="exportCsvBtn" title="Download Excel" class="flex items-center space-x-1.5 px-3 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold shadow-sm transition active:scale-95">
+        <button id="exportCsvBtn" title="Download Excel" class="flex items-center space-x-1.5 px-3 py-2 rounded-xl border border-slate-200 bg-white/90 hover:bg-white text-slate-700 text-xs font-bold shadow-sm transition active:scale-95">
           <i data-lucide="sheet" class="w-3.5 h-3.5 text-krypton"></i>
           <span class="hidden sm:inline">Export Excel</span>
         </button>
 
-        <button id="refreshBtn" title="Refresh Sync" class="p-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 shadow-sm transition active:scale-95">
+        <button id="refreshBtn" title="Refresh Sync" class="p-2 rounded-xl border border-slate-200 bg-white/90 hover:bg-white text-slate-600 shadow-sm transition active:scale-95">
           <i id="refreshIcon" data-lucide="rotate-cw" class="w-3.5 h-3.5"></i>
         </button>
 
@@ -292,7 +356,7 @@
           <div id="statTasks" class="text-xl font-black text-slate-900 font-mono">0</div>
         </div>
 
-        <div class="krypton-card p-4 rounded-2xl border-krypton-border bg-krypton-tint">
+        <div class="krypton-card p-4 rounded-2xl border-krypton-border bg-krypton-tint/80">
           <div class="flex items-center justify-between mb-1">
             <span class="text-[11px] font-extrabold text-krypton-dark uppercase tracking-wider">Monthly Retainers</span>
             <i data-lucide="repeat" class="w-3.5 h-3.5 text-krypton"></i>
@@ -309,9 +373,9 @@
         </div>
       </section>
 
-      <!-- Main Clean Data Table Card -->
+      <!-- Main Data Table Card -->
       <section class="krypton-card rounded-2xl overflow-hidden shadow-sm">
-        <div class="px-5 py-3.5 border-b border-slate-100 flex items-center justify-between bg-slate-50/70">
+        <div class="px-5 py-3.5 border-b border-slate-100/90 flex items-center justify-between bg-slate-50/70">
           <div>
             <h2 id="currentSectionTitle" class="text-xs font-extrabold text-slate-900 uppercase tracking-wider">
               Overview Dashboard
@@ -331,7 +395,7 @@
     </div>
   </main>
 
-  <!-- ================= UNIVERSAL ADD MODAL ================= -->
+  <!-- ================= UNIVERSAL ADD / EDIT MODAL ================= -->
   <div id="entryModal" class="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm hidden items-center justify-center p-4">
     <div class="bg-white border border-slate-200 w-full max-w-lg rounded-2xl p-6 shadow-2xl">
       <div class="flex items-center justify-between mb-4">
@@ -346,7 +410,7 @@
 
       <form id="universalForm" class="space-y-3.5">
         <div id="formFieldsContainer" class="space-y-3 max-h-[60vh] overflow-y-auto pr-1">
-          <!-- Dynamic Input Fields with reliable dropdowns -->
+          <!-- Dynamic Input Fields -->
         </div>
 
         <div class="pt-4 border-t border-slate-100 flex items-center justify-end space-x-2">
@@ -361,6 +425,6 @@
     </div>
   </div>
 
-  <script type="module" src="app.js?v=9.0"></script>
+  <script type="module" src="app.js?v=11.0"></script>
 </body>
 </html>
