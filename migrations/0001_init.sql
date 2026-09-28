@@ -2,14 +2,15 @@ CREATE TABLE IF NOT EXISTS users (
   id TEXT PRIMARY KEY,
   email TEXT NOT NULL UNIQUE COLLATE NOCASE,
   password_hash TEXT NOT NULL,
-  password_salt TEXT NOT NULL,
   created_at INTEGER NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS sessions (
-  token_hash TEXT PRIMARY KEY,
+  id TEXT PRIMARY KEY,
+  token_hash TEXT NOT NULL UNIQUE,
   user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  expires_at INTEGER NOT NULL
+  expires_at INTEGER NOT NULL,
+  created_at INTEGER NOT NULL
 );
 
 CREATE INDEX IF NOT EXISTS sessions_expiry_idx ON sessions(expires_at);

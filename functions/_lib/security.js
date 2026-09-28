@@ -60,8 +60,10 @@ export function clearSessionCookie(request) {
 export async function createSession(db, request, userId) {
   const token = base64Url(crypto.getRandomValues(new Uint8Array(32)));
   const tokenHash = await sha256(token);
+  const now = Date.now();
   const expiresAt = Date.now() + SESSION_LIFETIME_MS;
-  await db.prepare('INSERT INTO sessions (token_hash, user_id, expires_at) VALUES (?, ?, ?)').bind(tokenHash, userId, expiresAt).run();
+  await db.prepare('INSERT INTO sessions (id, token_hash, user_id, expires_at, created_at) VALUES (?, ?, ?, ?, ?)')
+    .bind(crypto.randomUUID(), tokenHash, userId, expiresAt, now).run();
   return sessionCookie(request, token, Math.floor(SESSION_LIFETIME_MS / 1000));
 }
 
