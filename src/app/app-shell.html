@@ -1,4 +1,6 @@
-@if (!authenticated) {
+@if (!authReady) {
+  <main id="loginScreen"><div class="loginBox" role="status">Checking secure session...</div></main>
+} @else if (!authenticated) {
   <main id="loginScreen">
     <form class="loginBox" [formGroup]="loginForm" (ngSubmit)="submitLogin()" novalidate>
       <div class="brand">
@@ -114,14 +116,14 @@
               @if (currentPage.addLabel) { <button class="addBtn" type="button" (click)="openAddModal()">+ {{ currentPage.addLabel }}</button> }
             </div>
             <div class="tableWrap"><table>
-              <thead><tr>@for (column of currentPage.columns || []; track column.key) { <th>{{ column.label }}</th> }</tr></thead>
+              <thead><tr>@for (column of currentPage.columns || []; track column.key) { <th>{{ column.label }}</th> }<th class="actionsColumn">Actions</th></tr></thead>
               <tbody>
                 @for (row of filteredRows; track $index) {
                   <tr>@for (column of currentPage.columns || []; track column.key) {
                     <td>@if (column.link && hasCellValue(row, column.key)) { <a [href]="cellValue(row, column.key)" target="_blank" rel="noopener noreferrer">Open</a> } @else { {{ cellValue(row, column.key) }} }</td>
-                  }</tr>
+                  }<td class="rowActions"><button class="rowActionBtn" type="button" (click)="openEditModal(currentPage.dataKey || 'clients', row)">Edit</button><button class="rowActionBtn dangerAction" type="button" (click)="deleteRecord(currentPage.dataKey || 'clients', row)">Delete</button></td></tr>
                 }
-                @if (!filteredRows.length) { <tr><td class="emptyCell" [attr.colspan]="currentPage.columns?.length || 1">{{ searchQuery || statusFilter ? 'No records match these filters.' : 'No records yet.' }}</td></tr> }
+                @if (!filteredRows.length) { <tr><td class="emptyCell" [attr.colspan]="(currentPage.columns?.length || 0) + 1">{{ searchQuery || statusFilter ? 'No records match these filters.' : 'No records yet.' }}</td></tr> }
               </tbody>
             </table></div>
           </section>

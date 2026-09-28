@@ -34,7 +34,7 @@ export class KryptonApiService {
   }
 
   private mapRequest(action: string, payload: Record<string, unknown>): {
-    method: 'GET' | 'POST';
+    method: 'GET' | 'POST' | 'PUT' | 'DELETE';
     url: string;
     body?: Record<string, unknown>;
   } {
@@ -60,6 +60,16 @@ export class KryptonApiService {
         const entity = String(payload['sheetName'] || '').toLowerCase();
         const route = entity === 'urls' ? 'urls' : entity;
         return { method: 'POST', url: `/api/records/${encodeURIComponent(route)}`, body: { data: payload['data'] } };
+      }
+      case 'updateRecord': {
+        const entity = String(payload['entity'] || '').toLowerCase();
+        const recordId = String(payload['recordId'] || '');
+        return { method: 'PUT', url: `/api/records/${encodeURIComponent(entity)}/${encodeURIComponent(recordId)}`, body: { data: payload['data'] } };
+      }
+      case 'deleteRecord': {
+        const entity = String(payload['entity'] || '').toLowerCase();
+        const recordId = String(payload['recordId'] || '');
+        return { method: 'DELETE', url: `/api/records/${encodeURIComponent(entity)}/${encodeURIComponent(recordId)}` };
       }
       case 'createKryptonBackup':
         return { method: 'POST', url: '/api/backup', body: {} };

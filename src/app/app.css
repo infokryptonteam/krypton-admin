@@ -22,5 +22,9 @@
 .settingsInfo { padding: 22px; font-size: 14px; line-height: 2; }
 .fieldError { display: block; margin-top: 5px; color: #b42318; font-size: 12px; }
 .modalActions button:disabled { opacity: .6; cursor: wait; }
+.actionsColumn { min-width: 130px; }
+.rowActions { display: flex; align-items: center; gap: 6px; white-space: nowrap; }
+.rowActionBtn { padding: 6px 9px; border: 1px solid #dfe4df; border-radius: 7px; background: #fff; color: #202420; font-size: 12px; font-weight: 700; cursor: pointer; }
+.dangerAction { color: #9c2119; border-color: #f0b9b5; }
 @media (max-width: 900px) { .topbarTools { gap: 7px; } }
 @media (max-width: 640px) { .exportBtn { width: 38px; min-width: 38px; padding: 0; } .exportBtn span { display: none; } }

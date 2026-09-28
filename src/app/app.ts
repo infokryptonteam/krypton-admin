@@ -50,7 +50,7 @@ const pageDefinitions: Array<{ id: PageId; label: string; dataKey?: DataKey; add
     { key: 'Client Name', label: 'Client' }, { key: 'Contact Person', label: 'Contact' }, { key: 'Phone', label: 'Phone' }, { key: 'Services', label: 'Services' }, { key: 'Status', label: 'Status' },
   ] },
   { id: 'projects', label: 'Projects', dataKey: 'projects', addLabel: 'Add Project', columns: [
-    { key: 'Project Name', label: 'Project' }, { key: 'Client ID', label: 'Client ID' }, { key: 'Assigned To', label: 'Assigned To' }, { key: 'Deadline', label: 'Deadline' }, { key: 'Status', label: 'Status' },
+    { key: 'Project Name', label: 'Project' }, { key: 'Client ID', label: 'Client ID' }, { key: 'Payment Frequency', label: 'Billing' }, { key: 'Assigned To', label: 'Assigned To' }, { key: 'Deadline', label: 'Deadline' }, { key: 'Status', label: 'Status' },
   ] },
   { id: 'files', label: 'Files', dataKey: 'files', addLabel: 'Add File', columns: [
     { key: 'File Name', label: 'File' }, { key: 'Client ID', label: 'Client' }, { key: 'Project ID', label: 'Project' }, { key: 'File Type', label: 'Type' }, { key: 'File Link', label: 'Link', link: true },
@@ -72,6 +72,11 @@ const pageDefinitions: Array<{ id: PageId; label: string; dataKey?: DataKey; add
   ] },
   { id: 'settings', label: 'Settings' },
 ];
+
+const recordIdFields: Record<DataKey, string> = {
+  clients: 'Client ID', projects: 'Project ID', files: 'File ID', urls: 'URL ID',
+  tasks: 'Task ID', team: 'Member ID', payments: 'Payment ID', reports: 'Report ID',
+};
 
 @Component({
   imports: [FormsModule, ReactiveFormsModule],
@@ -97,6 +102,7 @@ export class App implements OnInit {
   modalTitle = '';
   modalError = '';
   modalPage: DataKey | null = null;
+  editingRecordId: string | null = null;
   modalFields: FormField[] = [];
   passwordVisible = false;
   loginBusy = false;
@@ -105,6 +111,7 @@ export class App implements OnInit {
   backupBusy = false;
   sidebarOpen = false;
   authenticated = false;
+  authReady = false;
   private loginAttempts = 0;
   private loginLockUntil = 0;
   private noticeTimer: ReturnType<typeof setTimeout> | undefined;
@@ -112,13 +119,9 @@ export class App implements OnInit {
   constructor(private readonly api: KryptonApiService) {}
 
   ngOnInit(): void {
-    this.api.call<{ authenticated: boolean; email?: string }>('getSession').subscribe({
-      next: session => {
-        this.authenticated = session.authenticated;
-        this.userEmail = session.email || '';
-        if (this.authenticated) this.loadData();
-      },
-      error: () => this.authenticated = false,
+    this.api.call('logoutUser').subscribe({
+      next: () => this.authReady = true,
+      error: () => this.authReady = true,
     });
   }
 
@@ -240,6 +243,7 @@ export class App implements OnInit {
     this.modalPage = page;
     this.modalTitle = this.pages.find(item => item.id === page)?.addLabel || 'Add Record';
     this.modalError = '';
+    this.editingRecordId = null;
     this.modalFields = this.fieldsFor(page);
     this.entryForm = new FormRecord<FormControl<string>>({});
     for (const field of this.modalFields) {
@@ -252,7 +256,42 @@ export class App implements OnInit {
     }
   }
 
-  closeModal(): void { this.modalPage = null; this.modalError = ''; this.saving = false; }
+  openEditModal(page: DataKey, row: DataRow): void {
+    const recordId = String(row[recordIdFields[page]] || '');
+    if (!recordId) {
+      this.appError = 'This record has no ID and cannot be edited.';
+      return;
+    }
+    this.openAddModal(page);
+    this.editingRecordId = recordId;
+    this.modalTitle = `Edit ${this.pages.find(item => item.id === page)?.label || 'Record'}`;
+    for (const field of this.modalFields) {
+      const value = row[field.key];
+      this.entryForm.controls[field.key]?.setValue(value === null || value === undefined ? '' : String(value));
+    }
+  }
+
+  deleteRecord(page: DataKey, row: DataRow): void {
+    const recordId = String(row[recordIdFields[page]] || '');
+    if (!recordId) {
+      this.appError = 'This record has no ID and cannot be deleted.';
+      return;
+    }
+    const label = String(row['Client Name'] || row['Project Name'] || row['Name'] || row['Task'] || row['File Name'] || row['URL Name'] || row['Amount'] || row['Month'] || recordId);
+    if (!window.confirm(`Delete "${label}"? This cannot be undone.`)) return;
+    this.api.call('deleteRecord', { entity: page, recordId }).subscribe({
+      next: () => {
+        this.appError = '';
+        this.showNotice('Record deleted.');
+        this.loadData();
+      },
+      error: error => {
+        if (!this.handleAuthFailure(error)) this.appError = this.errorMessage(error, 'Could not delete this record.');
+      },
+    });
+  }
+
+  closeModal(): void { this.modalPage = null; this.editingRecordId = null; this.modalError = ''; this.saving = false; }
 
   onClientChanged(): void { this.entryForm.controls['Project ID']?.setValue(''); }
 
@@ -277,23 +316,31 @@ export class App implements OnInit {
     }
     const page = this.modalPage;
     const data: DataRow = Object.fromEntries(Object.entries(this.entryForm.getRawValue()).map(([key, value]) => [key, value.trim()]));
-    if (page === 'tasks') data['Task ID'] = `TSK-${Date.now()}`;
-    if (page === 'team') data['Member ID'] = `MEM-${Date.now()}`;
-    if (page === 'payments') data['Payment ID'] = `PAY-${Date.now()}`;
-    if (page === 'reports') data['Report ID'] = `RPT-${Date.now()}`;
+    if (!this.editingRecordId && page === 'tasks') data['Task ID'] = `TSK-${Date.now()}`;
+    if (!this.editingRecordId && page === 'team') data['Member ID'] = `MEM-${Date.now()}`;
+    if (!this.editingRecordId && page === 'payments') data['Payment ID'] = `PAY-${Date.now()}`;
+    if (!this.editingRecordId && page === 'reports') data['Report ID'] = `RPT-${Date.now()}`;
 
-    let action = 'addRecord';
-    let payload: Record<string, unknown> = { sheetName: this.sheetName(page), data };
-    if (page === 'clients' || page === 'projects') {
-      action = page === 'clients' ? 'addClient' : 'addProject';
-      payload = { data };
-    } else if (page === 'urls') {
-      action = 'addProjectURL';
-      payload = { clientId: data['Client ID'], projectId: data['Project ID'], name: data['URL Name'], url: data['URL'], type: data['Type'], notes: data['Notes'] };
+    let action: string;
+    let payload: Record<string, unknown>;
+    if (this.editingRecordId) {
+      action = 'updateRecord';
+      payload = { entity: page, recordId: this.editingRecordId, data };
+    } else {
+      action = 'addRecord';
+      payload = { sheetName: this.sheetName(page), data };
+      if (page === 'clients' || page === 'projects') {
+        action = page === 'clients' ? 'addClient' : 'addProject';
+        payload = { data };
+      } else if (page === 'urls') {
+        action = 'addProjectURL';
+        payload = { clientId: data['Client ID'], projectId: data['Project ID'], name: data['URL Name'], url: data['URL'], type: data['Type'], notes: data['Notes'] };
+      }
     }
+    const wasEditing = Boolean(this.editingRecordId);
     this.saving = true;
     this.api.call(action, payload).subscribe({
-      next: () => this.finishSave('Record saved successfully.'),
+      next: () => this.finishSave(wasEditing ? 'Record updated successfully.' : 'Record saved successfully.'),
       error: error => this.saveFailed(error),
     });
   }
@@ -379,6 +426,7 @@ export class App implements OnInit {
       case 'projects': return [
         client(), { key: 'Project Name', label: 'Project Name', type: 'text', required: true },
         { key: 'Description', label: 'Description', type: 'textarea', full: true }, { key: 'Assigned To', label: 'Assigned To', type: 'text' },
+        { key: 'Payment Frequency', label: 'Payment Frequency', type: 'select', initialValue: 'One-time', options: choices(['One-time', 'Monthly recurring']) },
         { key: 'Priority', label: 'Priority', type: 'select', initialValue: 'Medium', options: choices(['Low', 'Medium', 'High']) }, { key: 'Status', label: 'Status', type: 'select', initialValue: 'Planning', options: choices(['Planning', 'In Progress', 'Completed', 'On Hold']) },
         { key: 'Budget', label: 'Budget', type: 'number' }, { key: 'Start Date', label: 'Start Date', type: 'date' },
         { key: 'Deadline', label: 'Deadline', type: 'date' }, { key: 'Notes', label: 'Notes', type: 'textarea', full: true },
