@@ -26,13 +26,12 @@
           },
           colors: {
             krypton: {
-              DEFAULT: '#10D03A',     /* Exact Logo Vibrant Lime-Green */
-              bright: '#00FF4D',      /* 3D Glass High-Glow Accent */
-              hover: '#0EB834',       /* Slightly darker on hover */
-              tint: '#ECFDF3',        /* Soft Clean Glass Tint */
-              border: '#A7F3D0',      /* Soft Logo Border */
-              dark: '#036824',        /* Logo Dark Green Text */
-              charcoal: '#091E11'     /* High-End Slate Heading */
+              DEFAULT: '#10D03A',
+              bright: '#00FF4D',
+              hover: '#0EB834',
+              tint: '#ECFDF3',
+              border: '#A7F3D0',
+              dark: '#036824'
             }
           }
         }
@@ -98,8 +97,6 @@
   <!-- ================= AUTHENTICATION OVERLAY ================= -->
   <div id="authScreen" class="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4">
     <div class="bg-white border border-slate-200 w-full max-w-md rounded-3xl p-8 shadow-2xl relative">
-      
-      <!-- Brand Logo in Auth Modal -->
       <div class="flex items-center space-x-3.5 mb-6">
         <div class="w-14 h-14 rounded-2xl krypton-logo-badge p-1.5 flex items-center justify-center shadow-sm overflow-hidden flex-shrink-0">
           <img src="./25535.png" onerror="this.onerror=null; this.src='./logo.png';" alt="Krypton Logo" class="w-full h-full object-contain drop-shadow">
@@ -147,10 +144,9 @@
     </button>
   </header>
 
-  <!-- ================= PROFESSIONAL SIDEBAR ================= -->
+  <!-- ================= SIDEBAR NAVIGATION ================= -->
   <aside id="sidebar" class="fixed md:static inset-y-0 left-0 z-40 w-64 bg-white border-r border-slate-200 flex flex-col justify-between transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out">
     <div>
-      <!-- Brand Logo Header in Sidebar -->
       <div class="p-5 border-b border-slate-100 flex items-center justify-between">
         <div class="flex items-center space-x-3">
           <div class="w-11 h-11 rounded-2xl krypton-logo-badge p-1 flex items-center justify-center shadow-sm overflow-hidden flex-shrink-0">
@@ -169,41 +165,45 @@
         </button>
       </div>
 
-      <!-- Navigation Tabs (Exact Sequence) -->
+      <!-- Navigation Tabs (Exact Sequence Matching Google Sheet) -->
       <nav class="p-3 space-y-1 overflow-y-auto max-h-[calc(100vh-170px)]">
-        <button class="tab-btn w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-xs font-bold bg-krypton-tint text-krypton-dark border border-krypton-border transition" data-tab="dashboard">
+        <button class="tab-btn w-full flex items-center space-x-3 px-3 py-2 rounded-xl text-xs font-bold bg-krypton-tint text-krypton-dark border border-krypton-border transition" data-tab="dashboard">
           <i data-lucide="layout-dashboard" class="w-4 h-4 text-krypton"></i>
           <span>Dashboard</span>
         </button>
-        <button class="tab-btn w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition" data-tab="clients">
+        <button class="tab-btn w-full flex items-center space-x-3 px-3 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition" data-tab="users">
+          <i data-lucide="shield-check" class="w-4 h-4 text-slate-400"></i>
+          <span>Users</span>
+        </button>
+        <button class="tab-btn w-full flex items-center space-x-3 px-3 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition" data-tab="clients">
           <i data-lucide="users" class="w-4 h-4 text-slate-400"></i>
           <span>Clients</span>
         </button>
-        <button class="tab-btn w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition" data-tab="projects">
+        <button class="tab-btn w-full flex items-center space-x-3 px-3 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition" data-tab="projects">
           <i data-lucide="folder-kanban" class="w-4 h-4 text-slate-400"></i>
           <span>Projects</span>
         </button>
-        <button class="tab-btn w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition" data-tab="tasks">
+        <button class="tab-btn w-full flex items-center space-x-3 px-3 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition" data-tab="tasks">
           <i data-lucide="check-square" class="w-4 h-4 text-slate-400"></i>
           <span>Tasks</span>
         </button>
-        <button class="tab-btn w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition" data-tab="payments">
+        <button class="tab-btn w-full flex items-center space-x-3 px-3 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition" data-tab="payments">
           <i data-lucide="receipt" class="w-4 h-4 text-slate-400"></i>
           <span>Payments</span>
         </button>
-        <button class="tab-btn w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition" data-tab="recurring">
+        <button class="tab-btn w-full flex items-center space-x-3 px-3 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition" data-tab="recurring">
           <i data-lucide="refresh-cw" class="w-4 h-4 text-slate-400"></i>
           <span>Recurring Clients</span>
         </button>
-        <button class="tab-btn w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition" data-tab="social">
+        <button class="tab-btn w-full flex items-center space-x-3 px-3 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition" data-tab="social">
           <i data-lucide="share-2" class="w-4 h-4 text-slate-400"></i>
           <span>Social Posts</span>
         </button>
-        <button class="tab-btn w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition" data-tab="reports">
+        <button class="tab-btn w-full flex items-center space-x-3 px-3 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition" data-tab="reports">
           <i data-lucide="pie-chart" class="w-4 h-4 text-slate-400"></i>
           <span>Reports</span>
         </button>
-        <button class="tab-btn w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition" data-tab="team">
+        <button class="tab-btn w-full flex items-center space-x-3 px-3 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition" data-tab="team">
           <i data-lucide="user-check" class="w-4 h-4 text-slate-400"></i>
           <span>Team</span>
         </button>
@@ -234,16 +234,13 @@
     
     <!-- Top Action Toolbar -->
     <div class="bg-white border-b border-slate-200 px-4 md:px-8 py-3 flex flex-wrap items-center justify-between gap-3 sticky top-0 z-20">
-      
-      <!-- Global Search -->
       <div class="flex items-center space-x-3 flex-1 min-w-[200px] max-w-sm">
         <div class="relative w-full">
           <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3 top-2.5 pointer-events-none"></i>
-          <input type="text" id="globalSearch" placeholder="Search records, clients, tasks..." class="w-full bg-slate-50 border border-slate-200 text-xs pl-9 pr-3 py-2 rounded-xl outline-none krypton-input text-slate-800 placeholder-slate-400 transition">
+          <input type="text" id="globalSearch" placeholder="Search records across tab..." class="w-full bg-slate-50 border border-slate-200 text-xs pl-9 pr-3 py-2 rounded-xl outline-none krypton-input text-slate-800 placeholder-slate-400 transition">
         </div>
       </div>
 
-      <!-- Action Buttons -->
       <div class="flex items-center space-x-2">
         <span class="hidden lg:inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-krypton-tint border border-krypton-border text-[11px] font-bold text-krypton-dark">
           <span class="w-2 h-2 rounded-full bg-krypton animate-pulse"></span>
@@ -271,7 +268,6 @@
       
       <!-- Key KPI Header Counters -->
       <section class="grid grid-cols-2 lg:grid-cols-5 gap-3 md:gap-4">
-        
         <div class="krypton-card p-4 rounded-2xl">
           <div class="flex items-center justify-between text-slate-400 mb-1">
             <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Total Clients</span>
@@ -350,11 +346,11 @@
 
       <form id="universalForm" class="space-y-3.5">
         <div id="formFieldsContainer" class="space-y-3 max-h-[60vh] overflow-y-auto pr-1">
-          <!-- Dynamic Input Fields -->
+          <!-- Dynamic Input Fields with reliable dropdowns -->
         </div>
 
         <div class="pt-4 border-t border-slate-100 flex items-center justify-end space-x-2">
-          <button type="button" onclick="document.getElementById('entryModal').classList.add('hidden'); document.getElementById('entryModal').classList.remove('flex');" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 transition">
+          <button type="button" id="cancelModalBtn" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 transition">
             Cancel
           </button>
           <button type="submit" class="px-5 py-2 rounded-xl text-xs font-bold krypton-glow-btn text-white shadow-md transition">
@@ -365,6 +361,6 @@
     </div>
   </div>
 
-  <script type="module" src="app.js?v=7.0"></script>
+  <script type="module" src="app.js?v=9.0"></script>
 </body>
 </html>
