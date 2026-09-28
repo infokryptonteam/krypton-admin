@@ -32,7 +32,7 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-// State Store - ALL 8 ENTITIES INCLUDED
+// State Store - Sabhi 8 modules included
 const state = {
   currentTab: "dashboard",
   searchQuery: "",
@@ -140,7 +140,7 @@ if (closeSidebarBtn && sidebar) {
   });
 }
 
-// ================= 5. REALTIME DATA SUBSCRIPTIONS (ALL 8 COLLECTIONS) =================
+// ================= 5. REALTIME DATA SUBSCRIPTIONS =================
 let unsubscribers = [];
 const collections = ["users", "clients", "projects", "tasks", "recurring", "payments", "social", "team"];
 
@@ -179,7 +179,7 @@ function updateDashboardCounts() {
   if (elTasks) elTasks.textContent = pendingTasks;
 
   const monthlyTotal = state.data.recurring
-    .filter(r => r.subscriptionStatus === "Active")
+    .filter(r => (r.status === "Active" || r.subscriptionStatus === "Active"))
     .reduce((acc, curr) => acc + (Number(curr.monthlyFee) || 0), 0);
   if (elMRR) elMRR.textContent = `₹${monthlyTotal.toLocaleString()}`;
 
@@ -187,7 +187,7 @@ function updateDashboardCounts() {
   if (elRev) elRev.textContent = `₹${totalRev.toLocaleString()}`;
 }
 
-// ================= 7. FORM SCHEMAS (ZERO BLANK OPTIONS, ROBUST SELECTS) =================
+// ================= 7. FORM SCHEMAS (FIXED OPTIONS & ZERO BLANK FIELDS) =================
 const schemas = {
   users: [
     { name: "name", label: "User / Member Name", type: "text", required: true },
@@ -251,7 +251,8 @@ const schemas = {
     { name: "dailyUpdate", label: "Today's Work Log / Topic", type: "text", placeholder: "e.g. Reel #14 rendered & published", required: false },
     { name: "workUrl", label: "Delivered Reel / Post / Asset URL", type: "url", placeholder: "https://instagram.com/reel/... or Drive Link", required: false },
     { name: "renewalDay", label: "Billing Cycle Day (e.g. 1st or 10th)", type: "text", required: true },
-    { name: "subscriptionStatus", label: "Retainer State", type: "select", options: ["Active", "Paused", "Cancelled"] }
+    // Retainer State explicitly defined with exact options
+    { name: "status", label: "Retainer State", type: "select", options: ["Active", "Paused", "Cancelled"] }
   ],
   payments: [
     { name: "client", label: "Client Name", type: "text", required: true },
@@ -310,7 +311,7 @@ function openModalForTab(tab) {
       const select = document.createElement("select");
       select.className = "w-full bg-slate-50 border border-slate-200 text-xs px-3.5 py-2.5 rounded-xl text-slate-800 outline-none krypton-input transition";
       
-      f.options.forEach(opt => {
+      (f.options || []).forEach(opt => {
         const option = document.createElement("option");
         option.value = opt;
         option.textContent = opt;
@@ -330,7 +331,7 @@ function openModalForTab(tab) {
       const hiddenInput = document.createElement("input");
       hiddenInput.type = "hidden";
       hiddenInput.name = f.name;
-      hiddenInput.value = f.options[0];
+      hiddenInput.value = f.options && f.options.length > 0 ? f.options[0] : "";
 
       select.addEventListener("change", () => {
         if (select.value === "__CUSTOM__") {
@@ -355,12 +356,19 @@ function openModalForTab(tab) {
       const select = document.createElement("select");
       select.name = f.name;
       select.className = "w-full bg-slate-50 border border-slate-200 text-xs px-3.5 py-2.5 rounded-xl text-slate-800 outline-none krypton-input transition";
-      (f.options || []).forEach(opt => {
+      
+      const opts = f.options || [];
+      opts.forEach(opt => {
         const option = document.createElement("option");
         option.value = opt;
         option.textContent = opt;
         select.appendChild(option);
       });
+
+      if (opts.length > 0) {
+        select.value = opts[0];
+      }
+
       wrap.appendChild(select);
     } 
     else {
@@ -402,6 +410,11 @@ if (universalForm) {
     payload.createdAt = serverTimestamp();
 
     const targetCollection = state.currentTab === "dashboard" ? "clients" : state.currentTab;
+
+    // Both status and subscriptionStatus compatibility for recurring clients
+    if (targetCollection === "recurring" && payload.status) {
+      payload.subscriptionStatus = payload.status;
+    }
 
     try {
       // 1. Firebase Firestore Save
@@ -517,7 +530,7 @@ if (refreshBtn) {
   });
 }
 
-// ================= 11. RENDER ENGINE (ERROR-FREE TABLES) =================
+// ================= 11. RENDER ENGINE =================
 const container = document.getElementById("tabContentContainer");
 const sectionTitle = document.getElementById("currentSectionTitle");
 const newEntryBtnLabel = document.getElementById("newEntryBtnLabel");
@@ -604,6 +617,9 @@ function renderActiveTab() {
     tableHtml += `<tr class="hover:bg-slate-50/70 transition">`;
     (schemas[tab] || []).forEach(field => {
       let rawVal = row[field.name];
+      if (rawVal === undefined && field.name === "status" && row.subscriptionStatus !== undefined) {
+        rawVal = row.subscriptionStatus;
+      }
       let val = (rawVal !== undefined && rawVal !== null && String(rawVal).trim() !== "") ? String(rawVal).trim() : "-";
       
       // File / Reel / Media URL handling
@@ -730,7 +746,7 @@ function renderReportsView() {
   const rev = state.data.payments.reduce((acc, c) => acc + (Number(c.amount) || 0), 0);
   const totalPipeline = state.data.projects.reduce((acc, p) => acc + (Number(p.budget) || 0), 0);
   const activeMRR = state.data.recurring
-    .filter(r => r.subscriptionStatus === "Active")
+    .filter(r => (r.status === "Active" || r.subscriptionStatus === "Active"))
     .reduce((acc, curr) => acc + (Number(curr.monthlyFee) || 0), 0);
 
   if (!container) return;
@@ -760,9 +776,9 @@ function renderReportsView() {
 document.querySelectorAll(".tab-btn").forEach(btn => {
   btn.addEventListener("click", () => {
     document.querySelectorAll(".tab-btn").forEach(b => {
-      b.className = "tab-btn w-full flex items-center space-x-3 px-3 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition";
+      b.className = "tab-btn w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition";
     });
-    btn.className = "tab-btn w-full flex items-center space-x-3 px-3 py-2 rounded-xl text-xs font-bold bg-krypton-tint text-krypton-dark border border-krypton-border transition";
+    btn.className = "tab-btn w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-xs font-bold bg-krypton-tint text-krypton-dark border border-krypton-border transition";
     
     state.currentTab = btn.getAttribute("data-tab");
     if (openModalBtn) openModalBtn.style.display = state.currentTab === "reports" ? "none" : "flex";
