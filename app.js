@@ -1,801 +1,430 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-app.js";
-import { 
-  getAuth, 
-  signInWithEmailAndPassword, 
-  signOut, 
-  onAuthStateChanged 
-} from "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js";
-import { 
-  getFirestore, 
-  collection, 
-  addDoc, 
-  deleteDoc, 
-  doc, 
-  onSnapshot, 
-  serverTimestamp 
-} from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
-
-// ================= 1. KRYPTON REAL FIREBASE & APPS SCRIPT CONFIG =================
-const firebaseConfig = {
-  apiKey: "AIzaSyAYLFZsORRugzjOkBnA5P4hxux517mlGfE",
-  authDomain: "krypton-admin-d96be.firebaseapp.com",
-  projectId: "krypton-admin-d96be",
-  storageBucket: "krypton-admin-d96be.firebasestorage.app",
-  messagingSenderId: "375617512339",
-  appId: "1:375617512339:web:2baefdb4baa87558babe66"
-};
-
-// Connected Webhook URL for Google Sheets
-const GOOGLE_SHEET_WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbwgX71PP4Fjf0ldE-BjaWfSLdYp8Sh2Ff0AO3sa0ZWpJgnF5EQJyJZGXDlA6xFJ6ST-Jg/exec";
-
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
-
-// State Store - Sabhi 8 modules included
-const state = {
-  currentTab: "dashboard",
-  searchQuery: "",
-  data: {
-    users: [],
-    clients: [],
-    projects: [],
-    tasks: [],
-    recurring: [],
-    payments: [],
-    social: [],
-    team: []
-  }
-};
-
-// ================= 2. TOAST NOTIFICATION UTILITY =================
-function showToast(title, message, isSuccess = true) {
-  const toast = document.getElementById("toastNotification");
-  const tTitle = document.getElementById("toastTitle");
-  const tMsg = document.getElementById("toastMessage");
-  const tIcon = document.getElementById("toastIcon");
-
-  if (!toast || !tTitle || !tMsg || !tIcon) return;
-
-  tTitle.textContent = title;
-  tMsg.textContent = message;
-
-  if (isSuccess) {
-    tIcon.className = "w-8 h-8 rounded-xl bg-krypton-tint border border-krypton-border flex items-center justify-center text-krypton flex-shrink-0";
-    tIcon.innerHTML = `<i data-lucide="check" class="w-4 h-4 text-krypton-dark"></i>`;
-  } else {
-    tIcon.className = "w-8 h-8 rounded-xl bg-rose-50 border border-rose-200 flex items-center justify-center text-rose-600 flex-shrink-0";
-    tIcon.innerHTML = `<i data-lucide="alert-triangle" class="w-4 h-4 text-rose-600"></i>`;
-  }
-
-  if (window.lucide) lucide.createIcons();
-  toast.classList.remove("translate-y-[-160%]", "opacity-0");
-  toast.classList.add("translate-y-0", "opacity-100");
-
-  setTimeout(() => {
-    toast.classList.remove("translate-y-0", "opacity-100");
-    toast.classList.add("translate-y-[-160%]", "opacity-0");
-  }, 3500);
-}
-
-// ================= 3. AUTHENTICATION & PORTAL WELCOME =================
-const authScreen = document.getElementById("authScreen");
-const loginForm = document.getElementById("loginForm");
-const authError = document.getElementById("authError");
-const userEmailBadge = document.getElementById("userEmailBadge");
-const logoutBtn = document.getElementById("logoutBtn");
-
-onAuthStateChanged(auth, (user) => {
-  if (user) {
-    authScreen.classList.add("hidden");
-    const namePart = user.email.split("@")[0];
-    if (userEmailBadge) userEmailBadge.textContent = namePart.toUpperCase();
-    showToast("Access Granted", `Welcome back, ${namePart}! Krypton portal ready.`);
-    initLiveSubscriptions();
-  } else {
-    authScreen.classList.remove("hidden");
-  }
-});
-
-if (loginForm) {
-  loginForm.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    if (authError) authError.classList.add("hidden");
-    const email = document.getElementById("authEmail").value;
-    const pass = document.getElementById("authPass").value;
-    try {
-      await signInWithEmailAndPassword(auth, email, pass);
-    } catch (err) {
-      if (authError) {
-        authError.textContent = "Invalid admin credentials. Please re-check.";
-        authError.classList.remove("hidden");
-      }
-    }
-  });
-}
-
-if (logoutBtn) {
-  logoutBtn.addEventListener("click", async () => {
-    if (confirm("Lock Krypton workspace and log out?")) {
-      await signOut(auth);
-      showToast("Signed Out", "Session ended successfully.", false);
-    }
-  });
-}
-
-// ================= 4. MOBILE DRAWER NAVIGATION =================
-const mobileMenuToggle = document.getElementById("mobileMenuToggle");
-const closeSidebarBtn = document.getElementById("closeSidebarBtn");
-const sidebar = document.getElementById("sidebar");
-
-if (mobileMenuToggle && sidebar) {
-  mobileMenuToggle.addEventListener("click", () => {
-    sidebar.classList.remove("-translate-x-full");
-  });
-}
-
-if (closeSidebarBtn && sidebar) {
-  closeSidebarBtn.addEventListener("click", () => {
-    sidebar.classList.add("-translate-x-full");
-  });
-}
-
-// ================= 5. REALTIME DATA SUBSCRIPTIONS =================
-let unsubscribers = [];
-const collections = ["users", "clients", "projects", "tasks", "recurring", "payments", "social", "team"];
-
-function initLiveSubscriptions() {
-  unsubscribers.forEach(unsub => unsub());
-  unsubscribers = [];
-
-  collections.forEach(colName => {
-    const unsub = onSnapshot(collection(db, colName), (snap) => {
-      const records = [];
-      snap.forEach(d => records.push({ id: d.id, ...d.data() }));
-      state.data[colName] = records;
-      updateDashboardCounts();
-      renderActiveTab();
-    }, (err) => {
-      console.warn(`Collection ${colName} listener notice:`, err);
-    });
-    unsubscribers.push(unsub);
-  });
-}
-
-// ================= 6. KPI CALCULATIONS =================
-function updateDashboardCounts() {
-  const elClients = document.getElementById("statClients");
-  const elProjects = document.getElementById("statProjects");
-  const elTasks = document.getElementById("statTasks");
-  const elMRR = document.getElementById("statMRR");
-  const elRev = document.getElementById("statRevenue");
-
-  if (elClients) elClients.textContent = state.data.clients.length;
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Krypton | Enterprise Operations Portal</title>
   
-  const activeProjects = state.data.projects.filter(p => p.status !== "Completed").length;
-  if (elProjects) elProjects.textContent = activeProjects;
-
-  const pendingTasks = state.data.tasks.filter(t => t.status !== "Done").length;
-  if (elTasks) elTasks.textContent = pendingTasks;
-
-  const monthlyTotal = state.data.recurring
-    .filter(r => (r.status === "Active" || r.subscriptionStatus === "Active"))
-    .reduce((acc, curr) => acc + (Number(curr.monthlyFee) || 0), 0);
-  if (elMRR) elMRR.textContent = `₹${monthlyTotal.toLocaleString()}`;
-
-  const totalRev = state.data.payments.reduce((acc, curr) => acc + (Number(curr.amount) || 0), 0);
-  if (elRev) elRev.textContent = `₹${totalRev.toLocaleString()}`;
-}
-
-// ================= 7. FORM SCHEMAS (FIXED OPTIONS & ZERO BLANK FIELDS) =================
-const schemas = {
-  users: [
-    { name: "name", label: "User / Member Name", type: "text", required: true },
-    { name: "email", label: "Email Address", type: "email", required: true },
-    { name: "role", label: "Access Role", type: "select", options: ["Admin", "Project Manager", "Editor / Designer", "Guest"] },
-    { name: "status", label: "Account Status", type: "select", options: ["Active", "Inactive", "Suspended"] }
-  ],
-  clients: [
-    { name: "name", label: "Client or Business Name", type: "text", required: true },
-    { name: "phone", label: "WhatsApp / Contact Phone", type: "text", required: true },
-    { 
-      name: "service", 
-      label: "Selected Service", 
-      type: "select-with-custom", 
-      options: [
-        "Web Development", 
-        "Short-form Video Editing", 
-        "YouTube Documentary Editing", 
-        "Social Media Management", 
-        "Branding & Logo Design", 
-        "Performance Ads & Meta Marketing", 
-        "Full Agency Retainer", 
-        "SEO Optimization & Strategy"
-      ],
-      required: true 
-    },
-    { name: "status", label: "Relationship Status", type: "select", options: ["Active Client", "New Lead", "Completed"] }
-  ],
-  projects: [
-    { name: "title", label: "Project Title", type: "text", required: true },
-    { name: "client", label: "Client Name", type: "text", required: true },
-    { name: "budget", label: "Project Value (₹)", type: "number", required: true },
-    { name: "deadline", label: "Delivery Due Date", type: "date", required: true },
-    { name: "status", label: "Execution Stage", type: "select", options: ["Planning", "In Progress", "In Review", "Completed"] },
-    { name: "fileUrl", label: "Deliverable / Asset URL (Drive / Figma / Canva)", type: "url", placeholder: "https://...", required: false }
-  ],
-  tasks: [
-    { name: "task", label: "Task Description", type: "text", required: true },
-    { name: "assignee", label: "Assigned To", type: "text", required: true },
-    { name: "priority", label: "Priority Level", type: "select", options: ["Normal", "High", "Urgent"] },
-    { name: "status", label: "Progress Status", type: "select", options: ["To Do", "In Progress", "Done"] }
-  ],
-  recurring: [
-    { name: "clientName", label: "Client / Brand", type: "text", required: true },
-    { name: "monthlyFee", label: "Monthly Retainer (₹)", type: "number", required: true },
-    { 
-      name: "serviceScope", 
-      label: "Scope Package", 
-      type: "select-with-custom", 
-      options: [
-        "Daily Reels / Shorts Package (30/mo)", 
-        "Alternate Days Reels (15/mo)", 
-        "Complete Social Media Growth", 
-        "Website Maintenance & SEO", 
-        "Full Content Agency Retainer"
-      ],
-      required: true 
-    },
-    { name: "monthlyQuota", label: "Monthly Target Quota", type: "text", placeholder: "e.g. 30 Reels / Month", required: true },
-    { name: "completedCount", label: "Delivered Till Date", type: "text", placeholder: "e.g. 14 Delivered", required: false },
-    { name: "dailyUpdate", label: "Today's Work Log / Topic", type: "text", placeholder: "e.g. Reel #14 rendered & published", required: false },
-    { name: "workUrl", label: "Delivered Reel / Post / Asset URL", type: "url", placeholder: "https://instagram.com/reel/... or Drive Link", required: false },
-    { name: "renewalDay", label: "Billing Cycle Day (e.g. 1st or 10th)", type: "text", required: true },
-    // Retainer State explicitly defined with exact options
-    { name: "status", label: "Retainer State", type: "select", options: ["Active", "Paused", "Cancelled"] }
-  ],
-  payments: [
-    { name: "client", label: "Client Name", type: "text", required: true },
-    { name: "amount", label: "Amount Received (₹)", type: "number", required: true },
-    { name: "type", label: "Billing Milestone", type: "select", options: ["Advance Payment (50%)", "Milestone Payment", "Final Balance", "Monthly Retainer"] },
-    { name: "date", label: "Payment Date", type: "date", required: true }
-  ],
-  social: [
-    { name: "title", label: "Content / Reel Headline", type: "text", required: true },
-    { name: "platform", label: "Distribution Channel", type: "select", options: ["Instagram Reel", "YouTube Shorts", "YouTube Long-form", "LinkedIn Post"] },
-    { name: "scheduledDate", label: "Publish Date", type: "date", required: true },
-    { name: "status", label: "Production Status", type: "select", options: ["Idea", "Script Ready", "Editing Done", "Posted"] },
-    { name: "fileUrl", label: "Media / Asset Link (Drive / Post URL)", type: "url", placeholder: "https://...", required: false }
-  ],
-  team: [
-    { name: "fullName", label: "Member Name", type: "text", required: true },
-    { name: "role", label: "Primary Role", type: "select", options: ["Web Developer", "Video Editor", "Motion Designer", "Copywriter", "Growth Strategist"] },
-    { name: "contact", label: "Contact (Phone / Email)", type: "text", required: true },
-    { name: "status", label: "Availability", type: "select", options: ["Available", "Engaged on Project", "On Leave"] }
-  ]
-};
-
-// ================= 8. MODAL HANDLERS & DUAL SYNC =================
-const entryModal = document.getElementById("entryModal");
-const openModalBtn = document.getElementById("openModalBtn");
-const closeModalBtn = document.getElementById("closeModalBtn");
-const cancelModalBtn = document.getElementById("cancelModalBtn");
-const universalForm = document.getElementById("universalForm");
-const formFieldsContainer = document.getElementById("formFieldsContainer");
-const modalTitle = document.getElementById("modalTitle");
-
-function openModalForTab(tab) {
-  const displayNames = {
-    users: "User / Team Admin",
-    clients: "Client",
-    projects: "Project",
-    tasks: "Task",
-    recurring: "Recurring Client / Retainer",
-    payments: "Payment Record",
-    social: "Social Post",
-    team: "Team Member"
-  };
-
-  const target = tab === "dashboard" ? "clients" : tab;
-  if (!schemas[target]) return;
-
-  if (modalTitle) modalTitle.textContent = `New ${displayNames[target] || "Record"}`;
-  if (formFieldsContainer) formFieldsContainer.innerHTML = "";
-  const fields = schemas[target] || [];
-
-  fields.forEach(f => {
-    const wrap = document.createElement("div");
-    wrap.innerHTML = `<label class="block text-xs font-bold text-slate-700 mb-1">${f.label}</label>`;
-
-    if (f.type === "select-with-custom") {
-      const select = document.createElement("select");
-      select.className = "w-full bg-slate-50 border border-slate-200 text-xs px-3.5 py-2.5 rounded-xl text-slate-800 outline-none krypton-input transition";
-      
-      (f.options || []).forEach(opt => {
-        const option = document.createElement("option");
-        option.value = opt;
-        option.textContent = opt;
-        select.appendChild(option);
-      });
-
-      const customOption = document.createElement("option");
-      customOption.value = "__CUSTOM__";
-      customOption.textContent = "✏️ + Custom / Type Your Own...";
-      select.appendChild(customOption);
-
-      const customInput = document.createElement("input");
-      customInput.type = "text";
-      customInput.placeholder = "Type your custom service name here...";
-      customInput.className = "w-full mt-2 bg-white border border-krypton-border text-xs px-3.5 py-2 rounded-xl text-slate-900 outline-none krypton-input hidden";
-
-      const hiddenInput = document.createElement("input");
-      hiddenInput.type = "hidden";
-      hiddenInput.name = f.name;
-      hiddenInput.value = f.options && f.options.length > 0 ? f.options[0] : "";
-
-      select.addEventListener("change", () => {
-        if (select.value === "__CUSTOM__") {
-          customInput.classList.remove("hidden");
-          customInput.focus();
-          hiddenInput.value = customInput.value.trim();
-        } else {
-          customInput.classList.add("hidden");
-          hiddenInput.value = select.value;
-        }
-      });
-
-      customInput.addEventListener("input", () => {
-        hiddenInput.value = customInput.value.trim() || select.options[0].value;
-      });
-
-      wrap.appendChild(select);
-      wrap.appendChild(customInput);
-      wrap.appendChild(hiddenInput);
-    } 
-    else if (f.type === "select") {
-      const select = document.createElement("select");
-      select.name = f.name;
-      select.className = "w-full bg-slate-50 border border-slate-200 text-xs px-3.5 py-2.5 rounded-xl text-slate-800 outline-none krypton-input transition";
-      
-      const opts = f.options || [];
-      opts.forEach(opt => {
-        const option = document.createElement("option");
-        option.value = opt;
-        option.textContent = opt;
-        select.appendChild(option);
-      });
-
-      if (opts.length > 0) {
-        select.value = opts[0];
-      }
-
-      wrap.appendChild(select);
-    } 
-    else {
-      const input = document.createElement("input");
-      input.type = f.type;
-      input.name = f.name;
-      if (f.required) input.required = true;
-      if (f.placeholder) input.placeholder = f.placeholder;
-      input.className = "w-full bg-slate-50 border border-slate-200 text-xs px-3.5 py-2.5 rounded-xl text-slate-800 outline-none krypton-input transition placeholder-slate-400";
-      wrap.appendChild(input);
-    }
-    if (formFieldsContainer) formFieldsContainer.appendChild(wrap);
-  });
-
-  if (entryModal) {
-    entryModal.classList.remove("hidden");
-    entryModal.classList.add("flex");
-  }
-}
-
-function hideModal() {
-  if (entryModal) {
-    entryModal.classList.add("hidden");
-    entryModal.classList.remove("flex");
-  }
-}
-
-if (openModalBtn) {
-  openModalBtn.addEventListener("click", () => openModalForTab(state.currentTab));
-}
-if (closeModalBtn) closeModalBtn.addEventListener("click", hideModal);
-if (cancelModalBtn) cancelModalBtn.addEventListener("click", hideModal);
-
-if (universalForm) {
-  universalForm.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const formData = new FormData(universalForm);
-    const payload = Object.fromEntries(formData.entries());
-    payload.createdAt = serverTimestamp();
-
-    const targetCollection = state.currentTab === "dashboard" ? "clients" : state.currentTab;
-
-    // Both status and subscriptionStatus compatibility for recurring clients
-    if (targetCollection === "recurring" && payload.status) {
-      payload.subscriptionStatus = payload.status;
-    }
-
-    try {
-      // 1. Firebase Firestore Save
-      await addDoc(collection(db, targetCollection), payload);
-
-      // 2. Google Sheets Dual Sync
-      if (GOOGLE_SHEET_WEBHOOK_URL) {
-        fetch(GOOGLE_SHEET_WEBHOOK_URL, {
-          method: "POST",
-          mode: "no-cors",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            moduleType: targetCollection,
-            ...payload
-          })
-        }).catch(err => console.warn("Google Sheet sync notice:", err));
-      }
-
-      showToast("Saved Successfully", "Data updated in Firebase & Google Sheets.");
-      universalForm.reset();
-      hideModal();
-    } catch (err) {
-      showToast("Error", err.message, false);
-    }
-  });
-}
-
-window.deleteEntity = async (col, id) => {
-  if (confirm("Delete this entry permanently from workspace records?")) {
-    await deleteDoc(doc(db, col, id));
-    showToast("Deleted", "Record has been removed.");
-  }
-};
-
-// ================= 9. EXPORT DATA TO EXCEL / CSV =================
-const exportCsvBtn = document.getElementById("exportCsvBtn");
-if (exportCsvBtn) {
-  exportCsvBtn.addEventListener("click", () => {
-    const tab = state.currentTab;
-    let exportData = [];
-    let filename = `krypton_${tab}_export.csv`;
-
-    if (tab === "dashboard" || tab === "reports") {
-      const allClients = state.data.clients.map(c => ({
-        Module: "Client",
-        Title: c.name || "",
-        Contact: c.phone || "",
-        Detail: c.service || "",
-        Status: c.status || ""
-      }));
-      const allProjects = state.data.projects.map(p => ({
-        Module: "Project",
-        Title: p.title || "",
-        Contact: p.client || "",
-        Detail: `Rs. ${p.budget || 0}`,
-        Status: p.status || ""
-      }));
-      const allPayments = state.data.payments.map(m => ({
-        Module: "Payment",
-        Title: m.client || "",
-        Contact: m.date || "",
-        Detail: `Rs. ${m.amount || 0}`,
-        Status: m.type || ""
-      }));
-      exportData = [...allClients, ...allProjects, ...allPayments];
-      filename = "krypton_master_summary.csv";
-    } else {
-      exportData = state.data[tab] || [];
-    }
-
-    if (!exportData || exportData.length === 0) {
-      alert("No data available to export in this section yet! Please add records first.");
-      return;
-    }
-
-    const keys = Object.keys(exportData[0]).filter(k => k !== "id" && k !== "createdAt");
-    let csvContent = "\uFEFF";
-    csvContent += keys.join(",") + "\r\n";
-
-    exportData.forEach(row => {
-      const line = keys.map(k => {
-        let val = row[k] !== undefined && row[k] !== null ? String(row[k]) : "";
-        val = val.replace(/"/g, '""');
-        return `"${val}"`;
-      }).join(",");
-      csvContent += line + "\r\n";
-    });
-
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.setAttribute("href", url);
-    link.setAttribute("download", filename);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-
-    showToast("Excel Exported", `${filename} downloaded successfully.`);
-  });
-}
-
-// ================= 10. REFRESH BUTTON =================
-const refreshBtn = document.getElementById("refreshBtn");
-if (refreshBtn) {
-  refreshBtn.addEventListener("click", () => {
-    refreshBtn.classList.add("animate-spin");
-    initLiveSubscriptions();
-    showToast("Syncing", "Workspace re-synced with Google Cloud.");
-    setTimeout(() => {
-      refreshBtn.classList.remove("animate-spin");
-    }, 700);
-  });
-}
-
-// ================= 11. RENDER ENGINE =================
-const container = document.getElementById("tabContentContainer");
-const sectionTitle = document.getElementById("currentSectionTitle");
-const newEntryBtnLabel = document.getElementById("newEntryBtnLabel");
-const recordCountLabel = document.getElementById("recordCountLabel");
-
-const titleMap = {
-  dashboard: "Overview Dashboard",
-  users: "Users & Security Directory",
-  clients: "Clients Directory",
-  projects: "Project Pipelines",
-  tasks: "Operational Tasks",
-  payments: "Payment Transactions",
-  recurring: "Recurring Clients & Retainers",
-  social: "Social Posts & Content Calendar",
-  reports: "Financial Overview",
-  team: "Agency Team Roster"
-};
-
-const buttonLabelMap = {
-  dashboard: "Add Client",
-  users: "Add User",
-  clients: "Add Client",
-  projects: "Add Project",
-  tasks: "Add Task",
-  payments: "Add Payment",
-  recurring: "Add Retainer / Quota",
-  social: "Add Social Post",
-  reports: "Add Record",
-  team: "Add Team Member"
-};
-
-function renderActiveTab() {
-  const tab = state.currentTab;
-  if (sectionTitle) sectionTitle.textContent = titleMap[tab] || "Portal View";
-  if (newEntryBtnLabel) newEntryBtnLabel.textContent = buttonLabelMap[tab] || "Add Entry";
-
-  if (tab === "dashboard") {
-    renderDashboardView();
-    return;
-  }
-
-  if (tab === "reports") {
-    renderReportsView();
-    return;
-  }
-
-  let list = state.data[tab] || [];
-
-  if (state.searchQuery.trim()) {
-    const q = state.searchQuery.toLowerCase();
-    list = list.filter(item => 
-      Object.values(item).some(val => String(val).toLowerCase().includes(q))
-    );
-  }
-
-  if (recordCountLabel) recordCountLabel.textContent = `${list.length} Records`;
-
-  if (!container) return;
-
-  if (list.length === 0) {
-    container.innerHTML = `
-      <div class="py-16 text-center text-slate-400 text-xs">
-        <i data-lucide="inbox" class="w-8 h-8 mx-auto mb-2 text-slate-300"></i>
-        No active records logged in this partition. Click "${buttonLabelMap[tab] || "Add Entry"}" above.
-      </div>
-    `;
-    if (window.lucide) lucide.createIcons();
-    return;
-  }
-
-  const headers = (schemas[tab] || []).map(s => s.label);
-  let tableHtml = `
-    <table class="w-full text-left text-xs text-slate-700">
-      <thead class="bg-slate-50 text-[11px] font-bold text-slate-500 border-b border-slate-200">
-        <tr>
-          ${headers.map(h => `<th class="px-5 py-3">${h}</th>`).join("")}
-          <th class="px-5 py-3 text-right">Action</th>
-        </tr>
-      </thead>
-      <tbody class="divide-y divide-slate-100 font-medium">
-  `;
-
-  list.forEach(row => {
-    tableHtml += `<tr class="hover:bg-slate-50/70 transition">`;
-    (schemas[tab] || []).forEach(field => {
-      let rawVal = row[field.name];
-      if (rawVal === undefined && field.name === "status" && row.subscriptionStatus !== undefined) {
-        rawVal = row.subscriptionStatus;
-      }
-      let val = (rawVal !== undefined && rawVal !== null && String(rawVal).trim() !== "") ? String(rawVal).trim() : "-";
-      
-      // File / Reel / Media URL handling
-      if (field.name === "fileUrl" || field.name === "workUrl") {
-        if (val !== "-" && (val.startsWith("http://") || val.startsWith("https://"))) {
-          const btnText = field.name === "workUrl" ? "View Reel" : "Open Link";
-          val = `<a href="${val}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center space-x-1 px-2.5 py-1 bg-krypton-tint hover:bg-emerald-100 text-krypton-dark rounded-lg font-bold transition border border-krypton-border">
-            <span>${btnText}</span>
-            <i data-lucide="external-link" class="w-3 h-3 text-krypton"></i>
-          </a>`;
-        } else {
-          val = `<span class="text-slate-400 italic">No URL</span>`;
+  <link rel="icon" type="image/png" href="./25535.png">
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Google Fonts: Plus Jakarta Sans & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace'],
+          },
+          colors: {
+            krypton: {
+              DEFAULT: '#10D03A',
+              bright: '#00FF4D',
+              hover: '#0EB834',
+              tint: '#E8FDF0',
+              border: '#A7F3D0',
+              dark: '#036824'
+            }
+          }
         }
       }
-      else if (field.name === "completedCount") {
-        val = `<span class="font-bold text-krypton-dark bg-krypton-tint border border-krypton-border px-2 py-0.5 rounded-md">${val}</span>`;
+    }
+  </script>
+
+  <style>
+    /* Ambient Animated Mesh Background */
+    body {
+      background-color: #F0F6F3;
+      color: #0F172A;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    /* Floating Ambient Gradient Spheres */
+    .ambient-sphere {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(85px);
+      z-index: 0;
+      pointer-events: none;
+      opacity: 0.55;
+      animation: floatMotion 18s ease-in-out infinite alternate;
+    }
+    .ambient-1 {
+      top: -10%;
+      left: 15%;
+      width: 480px;
+      height: 480px;
+      background: radial-gradient(circle, rgba(16, 208, 58, 0.28) 0%, rgba(167, 243, 208, 0.1) 70%);
+      animation-duration: 22s;
+    }
+    .ambient-2 {
+      bottom: 5%;
+      right: 5%;
+      width: 550px;
+      height: 550px;
+      background: radial-gradient(circle, rgba(56, 189, 248, 0.16) 0%, rgba(16, 208, 58, 0.18) 60%);
+      animation-duration: 26s;
+    }
+    .ambient-3 {
+      top: 40%;
+      left: 45%;
+      width: 420px;
+      height: 420px;
+      background: radial-gradient(circle, rgba(167, 243, 208, 0.35) 0%, rgba(240, 246, 243, 0) 70%);
+      animation-duration: 20s;
+    }
+
+    @keyframes floatMotion {
+      0% {
+        transform: translate(0px, 0px) scale(1);
       }
-      else if (field.name === "dailyUpdate") {
-        val = `<span class="text-slate-700 font-medium bg-slate-100 px-2 py-1 rounded-md block max-w-xs truncate" title="${val}">${val}</span>`;
+      50% {
+        transform: translate(45px, 35px) scale(1.08);
       }
-      else if (field.name === "budget" || field.name === "amount" || field.name === "monthlyFee") {
-        val = `<span class="font-bold font-mono text-slate-900 bg-slate-100 px-2 py-0.5 rounded-md">₹${Number(val).toLocaleString()}</span>`;
-      } 
-      else if (field.name === "status" || field.name === "subscriptionStatus" || field.name === "priority") {
-        let badgeColor = "bg-slate-100 text-slate-700 border-slate-200";
-        if (val === "Active" || val === "Active Client" || val === "Completed" || val === "Done" || val === "Posted") {
-          badgeColor = "bg-krypton-tint text-krypton-dark font-bold border-krypton-border";
-        } else if (val === "In Progress" || val === "High" || val === "Urgent") {
-          badgeColor = "bg-amber-50 text-amber-800 border-amber-200 font-bold";
-        } else if (val === "Cancelled" || val === "On Leave" || val === "Suspended") {
-          badgeColor = "bg-rose-50 text-rose-700 border-rose-200 font-bold";
-        }
-        val = `<span class="px-2.5 py-0.5 rounded-full text-[11px] border ${badgeColor}">${val}</span>`;
+      100% {
+        transform: translate(-30px, 50px) scale(0.96);
       }
-      tableHtml += `<td class="px-5 py-3 text-slate-800">${val}</td>`;
-    });
-    tableHtml += `
-      <td class="px-5 py-3 text-right">
-        <button onclick="deleteEntity('${tab}', '${row.id}')" class="text-rose-600 hover:text-rose-800 font-bold p-1 hover:bg-rose-50 rounded-lg transition text-[11px]">Delete</button>
-      </td>
-    </tr>`;
-  });
+    }
 
-  tableHtml += `</tbody></table>`;
-  container.innerHTML = tableHtml;
-  if (window.lucide) lucide.createIcons();
-}
+    /* Micro-dot subtle pattern */
+    .bg-dot-pattern {
+      background-image: radial-gradient(#CBD5E1 0.75px, transparent 0.75px);
+      background-size: 24px 24px;
+    }
 
-// ================= 12. OVERVIEW DASHBOARD VIEW =================
-function renderDashboardView() {
-  if (recordCountLabel) recordCountLabel.textContent = "Live Summary";
-  const recentProjects = state.data.projects.slice(0, 4);
-  const urgentTasks = state.data.tasks.filter(t => t.priority === "Urgent" || t.priority === "High").slice(0, 4);
+    /* Clean Glassmorphic Cards */
+    .krypton-card {
+      background: rgba(255, 255, 255, 0.88);
+      backdrop-filter: blur(14px);
+      border: 1px solid rgba(226, 232, 240, 0.95);
+      box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.04);
+    }
+    .krypton-glow-btn {
+      background-color: #10D03A;
+      box-shadow: 0 4px 14px 0 rgba(16, 208, 58, 0.32);
+    }
+    .krypton-glow-btn:hover {
+      background-color: #0EB834;
+      box-shadow: 0 6px 18px 0 rgba(16, 208, 58, 0.42);
+    }
+    .krypton-input:focus {
+      border-color: #10D03A;
+      box-shadow: 0 0 0 3px rgba(16, 208, 58, 0.18);
+    }
+    .krypton-logo-badge {
+      background: linear-gradient(145deg, #E8FDF0 0%, #D1FAE5 100%);
+      border: 1.5px solid #A7F3D0;
+    }
+    ::-webkit-scrollbar {
+      height: 6px;
+      width: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #F1F5F9;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #CBD5E1;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #10D03A;
+    }
+  </style>
+</head>
+<body class="bg-dot-pattern min-h-screen flex flex-col md:flex-row antialiased selection:bg-krypton-tint selection:text-krypton-dark relative">
 
-  if (!container) return;
+  <!-- Background Animated Glow Spheres -->
+  <div class="ambient-sphere ambient-1"></div>
+  <div class="ambient-sphere ambient-2"></div>
+  <div class="ambient-sphere ambient-3"></div>
 
-  container.innerHTML = `
-    <div class="p-6 space-y-6">
-      <div class="bg-gradient-to-r from-slate-900 to-slate-800 text-white rounded-2xl p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-sm relative overflow-hidden">
-        <div class="space-y-1 z-10">
-          <span class="inline-flex items-center gap-1.5 bg-white/10 text-krypton-bright px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-wide uppercase">
-            <span class="w-1.5 h-1.5 rounded-full bg-krypton-bright animate-pulse"></span> Krypton Command Center
-          </span>
-          <h3 class="text-lg font-bold text-white">Welcome back to Krypton Operations</h3>
-          <p class="text-xs text-slate-300">All systems synchronized with Cloud Firestore & Google Sheets.</p>
+  <!-- ================= NOTIFICATION TOAST ================= -->
+  <div id="toastNotification" class="fixed top-5 right-5 z-50 transform translate-y-[-160%] opacity-0 transition-all duration-300 pointer-events-none flex items-center space-x-3 px-4 py-3 rounded-2xl bg-white/95 backdrop-blur border border-krypton-border shadow-xl max-w-sm">
+    <div id="toastIcon" class="w-8 h-8 rounded-xl bg-krypton-tint border border-krypton-border flex items-center justify-center text-krypton-dark flex-shrink-0">
+      <i data-lucide="check" class="w-4 h-4 text-krypton-dark"></i>
+    </div>
+    <div>
+      <p id="toastTitle" class="text-xs font-bold text-slate-900">Notification</p>
+      <p id="toastMessage" class="text-xs text-slate-500 mt-0.5">Workspace updated.</p>
+    </div>
+  </div>
+
+  <!-- ================= AUTHENTICATION OVERLAY ================= -->
+  <div id="authScreen" class="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-md flex items-center justify-center p-4">
+    <div class="bg-white/95 border border-slate-200 w-full max-w-md rounded-3xl p-8 shadow-2xl relative">
+      <div class="flex items-center space-x-3.5 mb-6">
+        <div class="w-14 h-14 rounded-2xl krypton-logo-badge p-1.5 flex items-center justify-center shadow-sm overflow-hidden flex-shrink-0">
+          <img src="./25535.png" onerror="this.onerror=null; this.src='./logo.png';" alt="Krypton Logo" class="w-full h-full object-contain drop-shadow">
         </div>
-        <button onclick="document.querySelector('[data-tab=recurring]').click()" class="z-10 px-4 py-2 rounded-xl bg-krypton hover:bg-krypton-hover text-white font-bold text-xs transition shadow-md krypton-glow active:scale-95">
-          View Retainers Tracker
+        <div>
+          <h2 class="text-xl font-extrabold tracking-tight text-slate-900 flex items-center gap-1.5">
+            KRYPTON
+          </h2>
+          <p class="text-[10px] font-bold text-krypton-dark uppercase tracking-widest">The Best At What We Do.</p>
+        </div>
+      </div>
+
+      <div class="mb-5">
+        <h3 class="text-base font-bold text-slate-800">Admin Authentication</h3>
+        <p class="text-xs text-slate-500 mt-0.5">Enter authorized agency credentials to access workspace.</p>
+      </div>
+
+      <form id="loginForm" class="space-y-4">
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1.5">Admin Email</label>
+          <input type="email" id="authEmail" required placeholder="admin@krypton.com" class="w-full bg-slate-50/80 border border-slate-200 text-xs px-3.5 py-2.5 rounded-xl outline-none krypton-input transition text-slate-900 placeholder-slate-400">
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1.5">Password</label>
+          <input type="password" id="authPass" required placeholder="••••••••••••" class="w-full bg-slate-50/80 border border-slate-200 text-xs px-3.5 py-2.5 rounded-xl outline-none krypton-input transition text-slate-900 placeholder-slate-400">
+        </div>
+        <p id="authError" class="text-xs font-semibold text-rose-600 hidden bg-rose-50 p-2.5 rounded-xl border border-rose-200"></p>
+        <button type="submit" class="w-full py-2.5 krypton-glow-btn text-white font-bold text-xs rounded-xl transition shadow-md active:scale-[0.99]">
+          Unlock Operations Hub
         </button>
-        <div class="absolute -right-8 -bottom-8 w-36 h-36 bg-krypton/20 rounded-full blur-2xl pointer-events-none"></div>
-      </div>
+      </form>
+    </div>
+  </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div class="border border-slate-200 rounded-2xl p-4 bg-white shadow-sm">
-          <div class="flex items-center justify-between mb-3 pb-2 border-b border-slate-100">
-            <h4 class="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2">
-              <i data-lucide="folder-kanban" class="w-3.5 h-3.5 text-krypton"></i> Active Projects
-            </h4>
-            <span class="text-xs font-mono font-bold text-slate-400">${state.data.projects.length} Total</span>
+  <!-- ================= MOBILE HEADER ================= -->
+  <header class="md:hidden bg-white/80 backdrop-blur-md border-b border-slate-200 px-4 py-3 flex items-center justify-between sticky top-0 z-30">
+    <div class="flex items-center space-x-2.5">
+      <div class="w-9 h-9 rounded-xl krypton-logo-badge p-1 flex items-center justify-center overflow-hidden">
+        <img src="./25535.png" onerror="this.onerror=null; this.src='./logo.png';" alt="Krypton Logo" class="w-full h-full object-contain">
+      </div>
+      <span class="font-extrabold text-sm tracking-tight text-slate-900">KRYPTON</span>
+    </div>
+    <button id="mobileMenuToggle" class="p-2 rounded-xl bg-slate-100 border border-slate-200 text-slate-600 hover:text-slate-900">
+      <i data-lucide="menu" class="w-5 h-5"></i>
+    </button>
+  </header>
+
+  <!-- ================= SIDEBAR ================= -->
+  <aside id="sidebar" class="fixed md:static inset-y-0 left-0 z-40 w-64 bg-white/85 backdrop-blur-xl border-r border-slate-200/90 flex flex-col justify-between transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out">
+    <div>
+      <div class="p-5 border-b border-slate-100/80 flex items-center justify-between">
+        <div class="flex items-center space-x-3">
+          <div class="w-11 h-11 rounded-2xl krypton-logo-badge p-1 flex items-center justify-center shadow-sm overflow-hidden flex-shrink-0">
+            <img src="./25535.png" onerror="this.onerror=null; this.src='./logo.png';" alt="Krypton Logo" class="w-full h-full object-contain">
           </div>
-          <div class="space-y-2">
-            ${recentProjects.length === 0 ? '<p class="text-xs text-slate-400 py-4 text-center">No projects in pipeline.</p>' : recentProjects.map(p => `
-              <div class="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 border border-slate-100">
-                <div>
-                  <p class="text-xs font-bold text-slate-800">${p.title || "Untitled"}</p>
-                  <p class="text-[11px] text-slate-500">Client: ${p.client || "-"}</p>
-                </div>
-                <div class="text-right">
-                  <span class="text-xs font-bold font-mono text-slate-900">₹${Number(p.budget || 0).toLocaleString()}</span>
-                  <span class="block text-[10px] text-slate-500 font-medium">${p.status || "Planning"}</span>
-                </div>
-              </div>
-            `).join('')}
+          <div>
+            <h1 class="text-sm font-black tracking-tight text-slate-900">KRYPTON</h1>
+            <div class="flex items-center space-x-1.5 mt-0.5">
+              <span class="w-1.5 h-1.5 rounded-full bg-krypton animate-pulse"></span>
+              <span class="text-[9px] font-bold text-krypton-dark uppercase tracking-widest">Operations Hub</span>
+            </div>
           </div>
         </div>
+        <button id="closeSidebarBtn" class="md:hidden text-slate-400 hover:text-slate-700">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
 
-        <div class="border border-slate-200 rounded-2xl p-4 bg-white shadow-sm">
-          <div class="flex items-center justify-between mb-3 pb-2 border-b border-slate-100">
-            <h4 class="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2">
-              <i data-lucide="alert-circle" class="w-3.5 h-3.5 text-amber-500"></i> Priority Tasks
-            </h4>
-            <span class="text-xs font-mono font-bold text-slate-400">${state.data.tasks.length} Total</span>
+      <!-- Navigation Tabs (Exact Sequence) -->
+      <nav class="p-3 space-y-1 overflow-y-auto max-h-[calc(100vh-170px)]">
+        <button class="tab-btn w-full flex items-center space-x-3 px-3 py-2 rounded-xl text-xs font-bold bg-krypton-tint text-krypton-dark border border-krypton-border transition" data-tab="dashboard">
+          <i data-lucide="layout-dashboard" class="w-4 h-4 text-krypton"></i>
+          <span>Dashboard</span>
+        </button>
+        <button class="tab-btn w-full flex items-center space-x-3 px-3 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-50/80 hover:text-slate-900 transition" data-tab="users">
+          <i data-lucide="shield-check" class="w-4 h-4 text-slate-400"></i>
+          <span>Users</span>
+        </button>
+        <button class="tab-btn w-full flex items-center space-x-3 px-3 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-50/80 hover:text-slate-900 transition" data-tab="clients">
+          <i data-lucide="users" class="w-4 h-4 text-slate-400"></i>
+          <span>Clients</span>
+        </button>
+        <button class="tab-btn w-full flex items-center space-x-3 px-3 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-50/80 hover:text-slate-900 transition" data-tab="projects">
+          <i data-lucide="folder-kanban" class="w-4 h-4 text-slate-400"></i>
+          <span>Projects</span>
+        </button>
+        <button class="tab-btn w-full flex items-center space-x-3 px-3 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-50/80 hover:text-slate-900 transition" data-tab="tasks">
+          <i data-lucide="check-square" class="w-4 h-4 text-slate-400"></i>
+          <span>Tasks</span>
+        </button>
+        <button class="tab-btn w-full flex items-center space-x-3 px-3 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-50/80 hover:text-slate-900 transition" data-tab="payments">
+          <i data-lucide="receipt" class="w-4 h-4 text-slate-400"></i>
+          <span>Payments</span>
+        </button>
+        <button class="tab-btn w-full flex items-center space-x-3 px-3 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-50/80 hover:text-slate-900 transition" data-tab="recurring">
+          <i data-lucide="refresh-cw" class="w-4 h-4 text-slate-400"></i>
+          <span>Recurring Clients</span>
+        </button>
+        <button class="tab-btn w-full flex items-center space-x-3 px-3 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-50/80 hover:text-slate-900 transition" data-tab="social">
+          <i data-lucide="share-2" class="w-4 h-4 text-slate-400"></i>
+          <span>Social Posts</span>
+        </button>
+        <button class="tab-btn w-full flex items-center space-x-3 px-3 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-50/80 hover:text-slate-900 transition" data-tab="reports">
+          <i data-lucide="pie-chart" class="w-4 h-4 text-slate-400"></i>
+          <span>Reports</span>
+        </button>
+        <button class="tab-btn w-full flex items-center space-x-3 px-3 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-50/80 hover:text-slate-900 transition" data-tab="team">
+          <i data-lucide="user-check" class="w-4 h-4 text-slate-400"></i>
+          <span>Team</span>
+        </button>
+      </nav>
+    </div>
+
+    <!-- Active User -->
+    <div class="p-3.5 border-t border-slate-100 bg-slate-50/60">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center space-x-2.5 min-w-0">
+          <div class="w-8 h-8 rounded-full bg-krypton-tint text-krypton-dark font-bold border border-krypton-border flex items-center justify-center text-xs uppercase flex-shrink-0">
+            A
           </div>
-          <div class="space-y-2">
-            ${urgentTasks.length === 0 ? '<p class="text-xs text-slate-400 py-4 text-center">No urgent tasks pending.</p>' : urgentTasks.map(t => `
-              <div class="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 border border-slate-100">
-                <div>
-                  <p class="text-xs font-bold text-slate-800">${t.task || "Task"}</p>
-                  <p class="text-[11px] text-slate-500">Assigned: ${t.assignee || "-"}</p>
-                </div>
-                <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200">${t.priority || "High"}</span>
-              </div>
-            `).join('')}
+          <div class="min-w-0">
+            <p id="userEmailBadge" class="text-xs font-bold text-slate-900 truncate font-mono">ADMIN</p>
+            <span class="inline-block text-[10px] text-krypton-dark bg-krypton-tint px-1.5 py-0.2 rounded font-bold">Online</span>
           </div>
         </div>
+        <button id="logoutBtn" title="Sign Out" class="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition">
+          <i data-lucide="log-out" class="w-4 h-4"></i>
+        </button>
       </div>
     </div>
-  `;
-  if (window.lucide) lucide.createIcons();
-}
+  </aside>
 
-// ================= 13. REPORTS SUMMARY VIEW =================
-function renderReportsView() {
-  const rev = state.data.payments.reduce((acc, c) => acc + (Number(c.amount) || 0), 0);
-  const totalPipeline = state.data.projects.reduce((acc, p) => acc + (Number(p.budget) || 0), 0);
-  const activeMRR = state.data.recurring
-    .filter(r => (r.status === "Active" || r.subscriptionStatus === "Active"))
-    .reduce((acc, curr) => acc + (Number(curr.monthlyFee) || 0), 0);
-
-  if (!container) return;
-
-  container.innerHTML = `
-    <div class="p-6 grid grid-cols-1 md:grid-cols-3 gap-6">
-      <div class="bg-krypton-tint border border-krypton-border p-5 rounded-2xl shadow-sm">
-        <span class="text-[11px] font-extrabold text-krypton-dark uppercase tracking-wider">Active Monthly Retainers (MRR)</span>
-        <h4 class="text-2xl font-black text-krypton-dark mt-1.5 font-mono">₹${activeMRR.toLocaleString()}/mo</h4>
-        <p class="text-xs text-slate-500 mt-1">Predictable monthly revenue run-rate</p>
+  <!-- ================= MAIN VIEWPORT ================= -->
+  <main class="flex-1 flex flex-col min-w-0 overflow-y-auto relative z-10">
+    
+    <!-- Top Action Toolbar -->
+    <div class="bg-white/80 backdrop-blur-md border-b border-slate-200/90 px-4 md:px-8 py-3 flex flex-wrap items-center justify-between gap-3 sticky top-0 z-20">
+      <div class="flex items-center space-x-3 flex-1 min-w-[200px] max-w-sm">
+        <div class="relative w-full">
+          <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3 top-2.5 pointer-events-none"></i>
+          <input type="text" id="globalSearch" placeholder="Search records across tab..." class="w-full bg-slate-50/90 border border-slate-200 text-xs pl-9 pr-3 py-2 rounded-xl outline-none krypton-input text-slate-800 placeholder-slate-400 transition">
+        </div>
       </div>
-      <div class="bg-white border border-slate-200 p-5 rounded-2xl shadow-sm">
-        <span class="text-[11px] text-slate-500 font-bold uppercase tracking-wider">Total Received Funds</span>
-        <h4 class="text-2xl font-black text-slate-900 mt-1.5 font-mono">₹${rev.toLocaleString()}</h4>
-        <p class="text-xs text-slate-400 mt-1">Collected payment balance</p>
-      </div>
-      <div class="bg-white border border-slate-200 p-5 rounded-2xl shadow-sm">
-        <span class="text-[11px] text-slate-500 font-bold uppercase tracking-wider">Pipeline Valuation</span>
-        <h4 class="text-2xl font-black text-slate-900 mt-1.5 font-mono">₹${totalPipeline.toLocaleString()}</h4>
-        <p class="text-xs text-slate-400 mt-1">Total active scope commitment</p>
+
+      <div class="flex items-center space-x-2">
+        <span class="hidden lg:inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-krypton-tint/80 border border-krypton-border text-[11px] font-bold text-krypton-dark">
+          <span class="w-2 h-2 rounded-full bg-krypton animate-pulse"></span>
+          <span>Google Sheet Connected</span>
+        </span>
+
+        <button id="exportCsvBtn" title="Download Excel" class="flex items-center space-x-1.5 px-3 py-2 rounded-xl border border-slate-200 bg-white/90 hover:bg-white text-slate-700 text-xs font-bold shadow-sm transition active:scale-95">
+          <i data-lucide="sheet" class="w-3.5 h-3.5 text-krypton"></i>
+          <span class="hidden sm:inline">Export Excel</span>
+        </button>
+
+        <button id="refreshBtn" title="Refresh Sync" class="p-2 rounded-xl border border-slate-200 bg-white/90 hover:bg-white text-slate-600 shadow-sm transition active:scale-95">
+          <i id="refreshIcon" data-lucide="rotate-cw" class="w-3.5 h-3.5"></i>
+        </button>
+
+        <button id="openModalBtn" class="flex items-center space-x-1.5 krypton-glow-btn text-white px-3.5 py-2 rounded-xl text-xs font-bold shadow-md transition active:scale-95">
+          <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+          <span id="newEntryBtnLabel">Add Entry</span>
+        </button>
       </div>
     </div>
-  `;
-}
 
-// ================= 14. TAB SWITCHING ENGINE =================
-document.querySelectorAll(".tab-btn").forEach(btn => {
-  btn.addEventListener("click", () => {
-    document.querySelectorAll(".tab-btn").forEach(b => {
-      b.className = "tab-btn w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition";
-    });
-    btn.className = "tab-btn w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-xs font-bold bg-krypton-tint text-krypton-dark border border-krypton-border transition";
-    
-    state.currentTab = btn.getAttribute("data-tab");
-    if (openModalBtn) openModalBtn.style.display = state.currentTab === "reports" ? "none" : "flex";
-    
-    if (sidebar) sidebar.classList.add("-translate-x-full");
-    
-    renderActiveTab();
-  });
-});
+    <!-- Workspace Container -->
+    <div class="p-4 md:p-8 space-y-6 max-w-7xl w-full mx-auto">
+      
+      <!-- Key KPI Header Counters -->
+      <section class="grid grid-cols-2 lg:grid-cols-5 gap-3 md:gap-4">
+        <div class="krypton-card p-4 rounded-2xl">
+          <div class="flex items-center justify-between text-slate-400 mb-1">
+            <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Total Clients</span>
+            <i data-lucide="users" class="w-3.5 h-3.5 text-slate-400"></i>
+          </div>
+          <div id="statClients" class="text-xl font-black text-slate-900 font-mono">0</div>
+        </div>
 
-const searchInput = document.getElementById("globalSearch");
-if (searchInput) {
-  searchInput.addEventListener("input", (e) => {
-    state.searchQuery = e.target.value;
-    renderActiveTab();
-  });
-}
+        <div class="krypton-card p-4 rounded-2xl">
+          <div class="flex items-center justify-between text-slate-400 mb-1">
+            <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Active Projects</span>
+            <i data-lucide="folder-kanban" class="w-3.5 h-3.5 text-slate-400"></i>
+          </div>
+          <div id="statProjects" class="text-xl font-black text-slate-900 font-mono">0</div>
+        </div>
 
-// Initial boot
-if (window.lucide) lucide.createIcons();
+        <div class="krypton-card p-4 rounded-2xl">
+          <div class="flex items-center justify-between text-slate-400 mb-1">
+            <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Pending Tasks</span>
+            <i data-lucide="clock" class="w-3.5 h-3.5 text-slate-400"></i>
+          </div>
+          <div id="statTasks" class="text-xl font-black text-slate-900 font-mono">0</div>
+        </div>
+
+        <div class="krypton-card p-4 rounded-2xl border-krypton-border bg-krypton-tint/80">
+          <div class="flex items-center justify-between mb-1">
+            <span class="text-[11px] font-extrabold text-krypton-dark uppercase tracking-wider">Monthly Retainers</span>
+            <i data-lucide="repeat" class="w-3.5 h-3.5 text-krypton"></i>
+          </div>
+          <div id="statMRR" class="text-xl font-black text-krypton-dark font-mono">₹0</div>
+        </div>
+
+        <div class="krypton-card p-4 rounded-2xl col-span-2 lg:col-span-1">
+          <div class="flex items-center justify-between text-slate-400 mb-1">
+            <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Total Revenue</span>
+            <i data-lucide="badge-indian-rupee" class="w-3.5 h-3.5 text-slate-400"></i>
+          </div>
+          <div id="statRevenue" class="text-xl font-black text-slate-900 font-mono">₹0</div>
+        </div>
+      </section>
+
+      <!-- Main Data Table Card -->
+      <section class="krypton-card rounded-2xl overflow-hidden shadow-sm">
+        <div class="px-5 py-3.5 border-b border-slate-100/90 flex items-center justify-between bg-slate-50/70">
+          <div>
+            <h2 id="currentSectionTitle" class="text-xs font-extrabold text-slate-900 uppercase tracking-wider">
+              Overview Dashboard
+            </h2>
+            <p class="text-[11px] text-slate-400">Operations repository live synced to Google Sheets</p>
+          </div>
+          <span id="recordCountLabel" class="text-xs font-bold font-mono px-2.5 py-1 bg-white border border-slate-200 rounded-lg text-krypton-dark">
+            0 Records
+          </span>
+        </div>
+
+        <!-- Render Container -->
+        <div id="tabContentContainer" class="overflow-x-auto min-h-[360px]">
+          <!-- Injected via JavaScript -->
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <!-- ================= UNIVERSAL ADD / EDIT MODAL ================= -->
+  <div id="entryModal" class="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm hidden items-center justify-center p-4">
+    <div class="bg-white border border-slate-200 w-full max-w-lg rounded-2xl p-6 shadow-2xl">
+      <div class="flex items-center justify-between mb-4">
+        <div>
+          <h3 id="modalTitle" class="text-sm font-bold text-slate-900">Add Record</h3>
+          <p class="text-xs text-slate-400">Syncs directly to Firebase and connected Google Sheet</p>
+        </div>
+        <button id="closeModalBtn" class="text-slate-400 hover:text-slate-700 p-1.5 rounded-lg hover:bg-slate-100">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <form id="universalForm" class="space-y-3.5">
+        <div id="formFieldsContainer" class="space-y-3 max-h-[60vh] overflow-y-auto pr-1">
+          <!-- Dynamic Input Fields -->
+        </div>
+
+        <div class="pt-4 border-t border-slate-100 flex items-center justify-end space-x-2">
+          <button type="button" id="cancelModalBtn" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 transition">
+            Cancel
+          </button>
+          <button type="submit" class="px-5 py-2 rounded-xl text-xs font-bold krypton-glow-btn text-white shadow-md transition">
+            Save & Sync Record
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script type="module" src="app.js?v=11.0"></script>
+</body>
+</html>
