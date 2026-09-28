@@ -136,6 +136,7 @@
     <section class="modalBox" role="dialog" aria-modal="true" [attr.aria-label]="modalTitle">
       <div class="modalHeader"><h2>{{ modalTitle }}</h2><button class="closeBtn" type="button" (click)="closeModal()" aria-label="Close">×</button></div>
       <form [formGroup]="entryForm" (ngSubmit)="saveRecord()" novalidate>
+        @if (modalError) { <div class="modalError" role="alert">{{ modalError }}</div> }
         <div class="formGrid">
           @for (field of modalFields; track field.key) {
             <div class="formGroup" [class.full]="field.full">

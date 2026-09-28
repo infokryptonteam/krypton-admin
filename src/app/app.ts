@@ -94,6 +94,7 @@ export class App implements OnInit {
   notice = '';
   userEmail = '';
   modalTitle = '';
+  modalError = '';
   modalPage: DataKey | null = null;
   modalFields: FormField[] = [];
   passwordVisible = false;
@@ -237,6 +238,7 @@ export class App implements OnInit {
     if (!['clients', 'projects', 'files', 'urls', 'tasks', 'team', 'payments', 'reports'].includes(page)) return;
     this.modalPage = page;
     this.modalTitle = this.pages.find(item => item.id === page)?.addLabel || 'Add Record';
+    this.modalError = '';
     this.modalFields = this.fieldsFor(page);
     this.entryForm = new FormRecord<FormControl<string>>({});
     for (const field of this.modalFields) {
@@ -247,7 +249,7 @@ export class App implements OnInit {
     }
   }
 
-  closeModal(): void { this.modalPage = null; this.saving = false; }
+  closeModal(): void { this.modalPage = null; this.modalError = ''; this.saving = false; }
 
   onClientChanged(): void { this.entryForm.controls['Project ID']?.setValue(''); }
 
@@ -267,6 +269,7 @@ export class App implements OnInit {
     if (!this.modalPage || this.saving) return;
     if (this.entryForm.invalid) {
       this.entryForm.markAllAsTouched();
+      this.modalError = 'Please complete the required fields highlighted below.';
       return;
     }
     const page = this.modalPage;
@@ -301,7 +304,7 @@ export class App implements OnInit {
   private saveFailed(error: unknown): void {
     this.saving = false;
     if (this.handleAuthFailure(error)) return;
-    this.appError = this.errorMessage(error, 'Could not save this record.');
+    this.modalError = this.errorMessage(error, 'Could not save this record.');
   }
 
   createBackup(): void {
@@ -437,6 +440,7 @@ export class App implements OnInit {
       this.authenticated = false;
       this.data = emptyWorkspace();
       this.loginError = message;
+      this.closeModal();
       return true;
     }
     return false;
