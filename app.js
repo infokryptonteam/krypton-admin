@@ -60,8 +60,8 @@ function showToast(title, message, isSuccess = true) {
   tMsg.textContent = message;
 
   if (isSuccess) {
-    tIcon.className = "w-8 h-8 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-600 flex-shrink-0";
-    tIcon.innerHTML = `<i data-lucide="check" class="w-4 h-4 text-emerald-600"></i>`;
+    tIcon.className = "w-8 h-8 rounded-xl bg-krypton-tint border border-krypton-border flex items-center justify-center text-krypton flex-shrink-0";
+    tIcon.innerHTML = `<i data-lucide="check" class="w-4 h-4 text-krypton-dark"></i>`;
   } else {
     tIcon.className = "w-8 h-8 rounded-xl bg-rose-50 border border-rose-200 flex items-center justify-center text-rose-600 flex-shrink-0";
     tIcon.innerHTML = `<i data-lucide="alert-triangle" class="w-4 h-4 text-rose-600"></i>`;
@@ -89,7 +89,7 @@ onAuthStateChanged(auth, (user) => {
     authScreen.classList.add("hidden");
     const namePart = user.email.split("@")[0];
     if (userEmailBadge) userEmailBadge.textContent = namePart.toUpperCase();
-    showToast("Welcome Back", `Signed in as ${namePart}. Workspace active.`);
+    showToast("Access Granted", `Welcome back, ${namePart}! Krypton portal ready.`);
     initLiveSubscriptions();
   } else {
     authScreen.classList.remove("hidden");
@@ -115,7 +115,7 @@ if (loginForm) {
 
 if (logoutBtn) {
   logoutBtn.addEventListener("click", async () => {
-    if (confirm("Are you sure you want to sign out from the workspace?")) {
+    if (confirm("Lock Krypton workspace and log out?")) {
       await signOut(auth);
       showToast("Signed Out", "Session ended successfully.", false);
     }
@@ -187,21 +187,21 @@ function updateDashboardCounts() {
 // ================= 7. FORM SCHEMAS (WITH COMBOBOX & FILE/REEL URLS) =================
 const schemas = {
   clients: [
-    { name: "name", label: "Client or Company Name", type: "text", required: true },
+    { name: "name", label: "Client or Business Name", type: "text", required: true },
     { name: "phone", label: "WhatsApp / Contact Phone", type: "text", required: true },
     { 
       name: "service", 
-      label: "Selected Service (Choose or Type Custom)", 
+      label: "Selected Service (Pick or Type Custom)", 
       type: "datalist", 
       options: [
         "Web Development", 
         "Short-form Video Editing", 
         "YouTube Documentary Editing", 
         "Social Media Management", 
-        "Branding & Visuals", 
-        "Performance Ads & Meta", 
-        "Full Retainer Package", 
-        "SEO Optimization"
+        "Branding & Logo Design", 
+        "Performance Ads & Meta Marketing", 
+        "Full Agency Retainer", 
+        "SEO Optimization & Strategy"
       ],
       placeholder: "Type custom service or choose below...",
       required: true 
@@ -227,7 +227,7 @@ const schemas = {
     { name: "monthlyFee", label: "Monthly Retainer (₹)", type: "number", required: true },
     { 
       name: "serviceScope", 
-      label: "Scope Package (Choose or Type Custom)", 
+      label: "Scope Package (Pick or Type Custom)", 
       type: "datalist", 
       options: [
         "Daily Reels / Shorts Package (30/mo)", 
@@ -239,7 +239,7 @@ const schemas = {
       placeholder: "e.g. 30 Reels / Month",
       required: true 
     },
-    { name: "monthlyQuota", label: "Monthly Target Quota", type: "text", placeholder: "e.g. 30 Reels / Month", required: true },
+    { name: "monthlyQuota", label: "Monthly Target Deliverables", type: "text", placeholder: "e.g. 30 Reels / Month", required: true },
     { name: "completedCount", label: "Delivered Till Date", type: "text", placeholder: "e.g. 14 Delivered", required: false },
     { name: "dailyUpdate", label: "Today's Work Log / Topic", type: "text", placeholder: "e.g. Reel #14 rendered & published", required: false },
     { name: "workUrl", label: "Delivered Reel / Post / Asset URL", type: "url", placeholder: "https://instagram.com/reel/... ya Drive Link", required: false },
@@ -254,7 +254,7 @@ const schemas = {
   ],
   social: [
     { name: "title", label: "Content / Reel Headline", type: "text", required: true },
-    { name: "platform", label: "Platform", type: "select", options: ["Instagram Reel", "YouTube Shorts", "YouTube Long-form", "LinkedIn Post"] },
+    { name: "platform", label: "Channel", type: "select", options: ["Instagram Reel", "YouTube Shorts", "YouTube Long-form", "LinkedIn Post"] },
     { name: "scheduledDate", label: "Publish Date", type: "date", required: true },
     { name: "status", label: "Production Status", type: "select", options: ["Idea", "Script Ready", "Editing Done", "Posted"] },
     { name: "fileUrl", label: "Media / Asset Link (Drive / Post URL)", type: "url", placeholder: "https://...", required: false }
@@ -293,7 +293,7 @@ function openModalForTab(tab) {
 
   fields.forEach(f => {
     const wrap = document.createElement("div");
-    wrap.innerHTML = `<label class="block text-xs font-semibold text-slate-700 mb-1">${f.label}</label>`;
+    wrap.innerHTML = `<label class="block text-xs font-bold text-slate-700 mb-1">${f.label}</label>`;
 
     if (f.type === "datalist") {
       const listId = `dl_${f.name}_${Date.now()}`;
@@ -302,7 +302,7 @@ function openModalForTab(tab) {
       input.name = f.name;
       input.placeholder = f.placeholder || "Type custom or select from list...";
       if (f.required) input.required = true;
-      input.className = "w-full bg-slate-50 border border-slate-200 text-xs px-3.5 py-2.5 rounded-xl text-slate-800 outline-none input-focus transition placeholder-slate-400";
+      input.className = "w-full bg-slate-50 border border-slate-200 text-xs px-3.5 py-2.5 rounded-xl text-slate-800 outline-none krypton-input transition placeholder-slate-400";
       
       const datalist = document.createElement("datalist");
       datalist.id = listId;
@@ -317,7 +317,7 @@ function openModalForTab(tab) {
     else if (f.type === "select") {
       const select = document.createElement("select");
       select.name = f.name;
-      select.className = "w-full bg-slate-50 border border-slate-200 text-xs px-3.5 py-2.5 rounded-xl text-slate-800 outline-none input-focus transition";
+      select.className = "w-full bg-slate-50 border border-slate-200 text-xs px-3.5 py-2.5 rounded-xl text-slate-800 outline-none krypton-input transition";
       f.options.forEach(opt => {
         const option = document.createElement("option");
         option.value = opt;
@@ -331,7 +331,7 @@ function openModalForTab(tab) {
       input.name = f.name;
       if (f.required) input.required = true;
       if (f.placeholder) input.placeholder = f.placeholder;
-      input.className = "w-full bg-slate-50 border border-slate-200 text-xs px-3.5 py-2.5 rounded-xl text-slate-800 outline-none input-focus transition placeholder-slate-400";
+      input.className = "w-full bg-slate-50 border border-slate-200 text-xs px-3.5 py-2.5 rounded-xl text-slate-800 outline-none krypton-input transition placeholder-slate-400";
       wrap.appendChild(input);
     }
     if (formFieldsContainer) formFieldsContainer.appendChild(wrap);
@@ -482,7 +482,7 @@ if (refreshBtn) {
   });
 }
 
-// ================= 11. RENDER ENGINE (CLEAN ENTERPRISE LIGHT THEME) =================
+// ================= 11. RENDER ENGINE (KRYPTON EMERALD ACCENTS) =================
 const container = document.getElementById("tabContentContainer");
 const sectionTitle = document.getElementById("currentSectionTitle");
 const newEntryBtnLabel = document.getElementById("newEntryBtnLabel");
@@ -554,13 +554,13 @@ function renderActiveTab() {
   const headers = (schemas[tab] || []).map(s => s.label);
   let tableHtml = `
     <table class="w-full text-left text-xs text-slate-700">
-      <thead class="bg-slate-50 text-[11px] font-semibold text-slate-500 border-b border-slate-200">
+      <thead class="bg-slate-50 text-[11px] font-bold text-slate-500 border-b border-slate-200">
         <tr>
           ${headers.map(h => `<th class="px-5 py-3">${h}</th>`).join("")}
           <th class="px-5 py-3 text-right">Action</th>
         </tr>
       </thead>
-      <tbody class="divide-y divide-slate-100 font-normal">
+      <tbody class="divide-y divide-slate-100 font-medium">
   `;
 
   list.forEach(row => {
@@ -572,31 +572,31 @@ function renderActiveTab() {
       if (field.name === "fileUrl" || field.name === "workUrl") {
         if (val && val !== "-" && (val.startsWith("http://") || val.startsWith("https://"))) {
           const btnText = field.name === "workUrl" ? "View Reel" : "Open Link";
-          val = `<a href="${val}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center space-x-1 px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-lg font-medium transition border border-slate-200">
+          val = `<a href="${val}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center space-x-1 px-2.5 py-1 bg-krypton-tint hover:bg-emerald-100 text-krypton-dark rounded-lg font-bold transition border border-krypton-border">
             <span>${btnText}</span>
-            <i data-lucide="external-link" class="w-3 h-3 text-slate-500"></i>
+            <i data-lucide="external-link" class="w-3 h-3 text-krypton"></i>
           </a>`;
         } else {
           val = `<span class="text-slate-400 italic">None</span>`;
         }
       }
       else if (field.name === "completedCount") {
-        val = `<span class="font-semibold text-emerald-800 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md">${val}</span>`;
+        val = `<span class="font-bold text-krypton-dark bg-krypton-tint border border-krypton-border px-2 py-0.5 rounded-md">${val}</span>`;
       }
       else if (field.name === "dailyUpdate") {
-        val = `<span class="text-slate-700 font-normal bg-slate-100 px-2 py-1 rounded-md block max-w-xs truncate" title="${val}">${val}</span>`;
+        val = `<span class="text-slate-700 font-medium bg-slate-100 px-2 py-1 rounded-md block max-w-xs truncate" title="${val}">${val}</span>`;
       }
       else if (field.name === "budget" || field.name === "amount" || field.name === "monthlyFee") {
-        val = `<span class="font-semibold text-slate-900 bg-slate-100 px-2 py-0.5 rounded-md">₹${Number(val).toLocaleString()}</span>`;
+        val = `<span class="font-bold font-mono text-slate-900 bg-slate-100 px-2 py-0.5 rounded-md">₹${Number(val).toLocaleString()}</span>`;
       } 
       else if (field.name === "status" || field.name === "subscriptionStatus" || field.name === "priority") {
         let badgeColor = "bg-slate-100 text-slate-700 border-slate-200";
         if (val === "Active" || val === "Active Client" || val === "Completed" || val === "Done" || val === "Posted") {
-          badgeColor = "bg-emerald-50 text-emerald-800 font-medium border-emerald-200";
+          badgeColor = "bg-krypton-tint text-krypton-dark font-bold border-krypton-border";
         } else if (val === "In Progress" || val === "High" || val === "Urgent") {
-          badgeColor = "bg-amber-50 text-amber-800 border-amber-200 font-medium";
+          badgeColor = "bg-amber-50 text-amber-800 border-amber-200 font-bold";
         } else if (val === "Cancelled" || val === "On Leave") {
-          badgeColor = "bg-rose-50 text-rose-700 border-rose-200 font-medium";
+          badgeColor = "bg-rose-50 text-rose-700 border-rose-200 font-bold";
         }
         val = `<span class="px-2.5 py-0.5 rounded-full text-[11px] border ${badgeColor}">${val}</span>`;
       }
@@ -604,7 +604,7 @@ function renderActiveTab() {
     });
     tableHtml += `
       <td class="px-5 py-3 text-right">
-        <button onclick="deleteEntity('${tab}', '${row.id}')" class="text-rose-600 hover:text-rose-800 font-medium p-1 hover:bg-rose-50 rounded-lg transition text-[11px]">Delete</button>
+        <button onclick="deleteEntity('${tab}', '${row.id}')" class="text-rose-600 hover:text-rose-800 font-bold p-1 hover:bg-rose-50 rounded-lg transition text-[11px]">Delete</button>
       </td>
     </tr>`;
   });
@@ -624,16 +624,19 @@ function renderDashboardView() {
 
   container.innerHTML = `
     <div class="p-6 space-y-6">
-      <!-- Clean Welcome Banner -->
-      <div class="bg-gradient-to-r from-slate-900 to-slate-800 text-white rounded-2xl p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-sm">
-        <div class="space-y-1">
-          <span class="inline-block bg-white/10 text-emerald-300 px-2.5 py-0.5 rounded-full text-[10px] font-semibold tracking-wide">Agency Command Hub</span>
+      <!-- Clean Welcome Banner with Krypton Glow -->
+      <div class="bg-gradient-to-r from-slate-900 to-slate-800 text-white rounded-2xl p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-sm relative overflow-hidden">
+        <div class="space-y-1 z-10">
+          <span class="inline-flex items-center gap-1.5 bg-white/10 text-krypton-bright px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-wide uppercase">
+            <span class="w-1.5 h-1.5 rounded-full bg-krypton-bright animate-pulse"></span> Krypton Command Center
+          </span>
           <h3 class="text-lg font-bold text-white">Welcome back to Krypton Operations</h3>
-          <p class="text-xs text-slate-300 font-normal">All systems synced in real-time across Firestore & Google Sheets.</p>
+          <p class="text-xs text-slate-300">All systems synchronized with Cloud Firestore & Google Sheets.</p>
         </div>
-        <button onclick="document.querySelector('[data-tab=recurring]').click()" class="px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-semibold text-xs transition shadow-sm active:scale-95">
+        <button onclick="document.querySelector('[data-tab=recurring]').click()" class="z-10 px-4 py-2 rounded-xl bg-krypton hover:bg-krypton-hover text-white font-bold text-xs transition shadow-md krypton-glow active:scale-95">
           View Retainers Tracker
         </button>
+        <div class="absolute -right-8 -bottom-8 w-36 h-36 bg-krypton/20 rounded-full blur-2xl pointer-events-none"></div>
       </div>
 
       <!-- Activity Grid -->
@@ -643,19 +646,19 @@ function renderDashboardView() {
         <div class="border border-slate-200 rounded-2xl p-4 bg-white shadow-sm">
           <div class="flex items-center justify-between mb-3 pb-2 border-b border-slate-100">
             <h4 class="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2">
-              <i data-lucide="folder-kanban" class="w-3.5 h-3.5 text-emerald-600"></i> Active Projects
+              <i data-lucide="folder-kanban" class="w-3.5 h-3.5 text-krypton"></i> Active Projects
             </h4>
-            <span class="text-xs text-slate-400 font-medium">${state.data.projects.length} Total</span>
+            <span class="text-xs font-mono font-bold text-slate-400">${state.data.projects.length} Total</span>
           </div>
           <div class="space-y-2">
             ${recentProjects.length === 0 ? '<p class="text-xs text-slate-400 py-4 text-center">No projects in pipeline.</p>' : recentProjects.map(p => `
               <div class="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 border border-slate-100">
                 <div>
-                  <p class="text-xs font-semibold text-slate-800">${p.title || "Untitled"}</p>
+                  <p class="text-xs font-bold text-slate-800">${p.title || "Untitled"}</p>
                   <p class="text-[11px] text-slate-500">Client: ${p.client || "-"}</p>
                 </div>
                 <div class="text-right">
-                  <span class="text-xs font-semibold text-slate-900">₹${Number(p.budget || 0).toLocaleString()}</span>
+                  <span class="text-xs font-bold font-mono text-slate-900">₹${Number(p.budget || 0).toLocaleString()}</span>
                   <span class="block text-[10px] text-slate-500 font-medium">${p.status || "Planning"}</span>
                 </div>
               </div>
@@ -669,16 +672,16 @@ function renderDashboardView() {
             <h4 class="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2">
               <i data-lucide="alert-circle" class="w-3.5 h-3.5 text-amber-500"></i> Priority Tasks
             </h4>
-            <span class="text-xs text-slate-400 font-medium">${state.data.tasks.length} Total</span>
+            <span class="text-xs font-mono font-bold text-slate-400">${state.data.tasks.length} Total</span>
           </div>
           <div class="space-y-2">
             ${urgentTasks.length === 0 ? '<p class="text-xs text-slate-400 py-4 text-center">No urgent tasks pending.</p>' : urgentTasks.map(t => `
               <div class="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 border border-slate-100">
                 <div>
-                  <p class="text-xs font-semibold text-slate-800">${t.task || "Task"}</p>
+                  <p class="text-xs font-bold text-slate-800">${t.task || "Task"}</p>
                   <p class="text-[11px] text-slate-500">Assigned: ${t.assignee || "-"}</p>
                 </div>
-                <span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-amber-50 text-amber-800 border border-amber-200">${t.priority || "High"}</span>
+                <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200">${t.priority || "High"}</span>
               </div>
             `).join('')}
           </div>
@@ -701,20 +704,20 @@ function renderReportsView() {
 
   container.innerHTML = `
     <div class="p-6 grid grid-cols-1 md:grid-cols-3 gap-6">
-      <div class="bg-emerald-50/60 border border-emerald-200 p-5 rounded-2xl shadow-sm">
-        <span class="text-[11px] font-bold text-emerald-800 uppercase tracking-wider">Active Monthly Retainers (MRR)</span>
-        <h4 class="text-2xl font-bold text-emerald-950 mt-1.5">₹${activeMRR.toLocaleString()}/mo</h4>
-        <p class="text-xs text-slate-500 mt-1 font-normal">Predictable monthly run-rate</p>
+      <div class="bg-krypton-tint border border-krypton-border p-5 rounded-2xl shadow-sm">
+        <span class="text-[11px] font-extrabold text-krypton-dark uppercase tracking-wider">Active Monthly Retainers (MRR)</span>
+        <h4 class="text-2xl font-black text-krypton-dark mt-1.5 font-mono">₹${activeMRR.toLocaleString()}/mo</h4>
+        <p class="text-xs text-slate-500 mt-1">Predictable monthly revenue run-rate</p>
       </div>
       <div class="bg-white border border-slate-200 p-5 rounded-2xl shadow-sm">
-        <span class="text-[11px] text-slate-500 font-semibold uppercase tracking-wider">Total Received Funds</span>
-        <h4 class="text-2xl font-bold text-slate-900 mt-1.5">₹${rev.toLocaleString()}</h4>
-        <p class="text-xs text-slate-400 mt-1 font-normal">Collected payment balance</p>
+        <span class="text-[11px] text-slate-500 font-bold uppercase tracking-wider">Total Received Funds</span>
+        <h4 class="text-2xl font-black text-slate-900 mt-1.5 font-mono">₹${rev.toLocaleString()}</h4>
+        <p class="text-xs text-slate-400 mt-1">Collected payment balance</p>
       </div>
       <div class="bg-white border border-slate-200 p-5 rounded-2xl shadow-sm">
-        <span class="text-[11px] text-slate-500 font-semibold uppercase tracking-wider">Pipeline Valuation</span>
-        <h4 class="text-2xl font-bold text-slate-900 mt-1.5">₹${totalPipeline.toLocaleString()}</h4>
-        <p class="text-xs text-slate-400 mt-1 font-normal">Total active project value</p>
+        <span class="text-[11px] text-slate-500 font-bold uppercase tracking-wider">Pipeline Valuation</span>
+        <h4 class="text-2xl font-black text-slate-900 mt-1.5 font-mono">₹${totalPipeline.toLocaleString()}</h4>
+        <p class="text-xs text-slate-400 mt-1">Total active scope commitment</p>
       </div>
     </div>
   `;
@@ -726,7 +729,7 @@ document.querySelectorAll(".tab-btn").forEach(btn => {
     document.querySelectorAll(".tab-btn").forEach(b => {
       b.className = "tab-btn w-full flex items-center space-x-3 px-3 py-2 rounded-xl text-xs font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition";
     });
-    btn.className = "tab-btn w-full flex items-center space-x-3 px-3 py-2 rounded-xl text-xs font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200 transition";
+    btn.className = "tab-btn w-full flex items-center space-x-3 px-3 py-2 rounded-xl text-xs font-bold bg-krypton-tint text-krypton-dark border border-krypton-border transition";
     
     state.currentTab = btn.getAttribute("data-tab");
     if (openModalBtn) openModalBtn.style.display = state.currentTab === "reports" ? "none" : "flex";
