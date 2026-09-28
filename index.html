@@ -3,25 +3,37 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Krypton | Enterprise Operations Portal</title>
+  <title>KRYPTON | Enterprise Operations Portal</title>
   
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Google Font: Plus Jakarta Sans & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   
   <script>
     tailwind.config = {
       theme: {
         extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace'],
+          },
           colors: {
-            krypton: {
+            brand: {
+              black: '#070A10',
+              surface: '#0D1322',
+              card: '#121A2D',
+              border: '#1E293B',
+              borderGlow: '#00FF6633',
               neon: '#00FF66',
-              dark: '#00993d',
-              tint: '#f0fdf4',
-              glow: 'rgba(0, 255, 102, 0.15)',
-              border: '#bbf7d0',
-              accent: '#052e16'
+              neonHover: '#22FF77',
+              neonDark: '#00993D',
+              neonMuted: 'rgba(0, 255, 102, 0.08)',
+              textMuted: '#94A3B8'
             }
           }
         }
@@ -30,257 +42,299 @@
   </script>
 
   <style>
-    .krypton-glow {
-      box-shadow: 0 0 20px rgba(0, 255, 102, 0.28);
+    body {
+      background-color: #070A10;
+      color: #F8FAFC;
     }
-    .krypton-border-focus:focus {
+    .neon-glow {
+      box-shadow: 0 0 25px rgba(0, 255, 102, 0.35);
+    }
+    .neon-border-glow:focus {
       border-color: #00FF66;
-      box-shadow: 0 0 0 4px rgba(0, 255, 102, 0.15);
+      box-shadow: 0 0 0 3px rgba(0, 255, 102, 0.2);
     }
-    /* Custom scrollbar for data tables */
+    .glass-card {
+      background: linear-gradient(135deg, rgba(18, 26, 45, 0.85) 0%, rgba(13, 19, 34, 0.95) 100%);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.07);
+    }
+    .cyber-grid {
+      background-size: 32px 32px;
+      background-image: 
+        linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+    }
     ::-webkit-scrollbar {
       height: 6px;
       width: 6px;
     }
+    ::-webkit-scrollbar-track {
+      background: #0D1322;
+    }
     ::-webkit-scrollbar-thumb {
-      background: #cbd5e1;
+      background: #1E293B;
       border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #00FF66;
     }
   </style>
 </head>
-<body class="bg-slate-50 text-slate-900 font-sans antialiased min-h-screen flex flex-col md:flex-row">
+<body class="cyber-grid min-h-screen flex flex-col md:flex-row antialiased selection:bg-brand-neon selection:text-black">
 
   <!-- ================= NOTIFICATION TOAST ================= -->
-  <div id="toastNotification" class="fixed top-5 right-5 z-50 transform translate-y-[-150%] opacity-0 transition-all duration-300 pointer-events-none flex items-center space-x-3 px-5 py-3.5 rounded-2xl bg-white border border-slate-200 shadow-xl max-w-sm">
-    <div id="toastIcon" class="w-8 h-8 rounded-xl bg-krypton-tint border border-krypton-border flex items-center justify-center text-krypton-dark flex-shrink-0">
-      <i data-lucide="check" class="w-4 h-4 text-emerald-600"></i>
+  <div id="toastNotification" class="fixed top-5 right-5 z-50 transform translate-y-[-160%] opacity-0 transition-all duration-300 pointer-events-none flex items-center space-x-3 px-5 py-3.5 rounded-2xl bg-brand-card/95 border border-brand-neon/40 shadow-2xl backdrop-blur-xl max-w-sm">
+    <div id="toastIcon" class="w-8 h-8 rounded-xl bg-brand-neonMuted border border-brand-neon/30 flex items-center justify-center text-brand-neon flex-shrink-0">
+      <i data-lucide="check" class="w-4 h-4 text-brand-neon"></i>
     </div>
     <div>
-      <p id="toastTitle" class="text-xs font-bold text-slate-900">Notification</p>
-      <p id="toastMessage" class="text-xs text-slate-500">Operation successful</p>
+      <p id="toastTitle" class="text-xs font-bold text-white tracking-wide">Command Successful</p>
+      <p id="toastMessage" class="text-xs text-brand-textMuted mt-0.5">Records updated & synced.</p>
     </div>
   </div>
 
   <!-- ================= AUTHENTICATION OVERLAY ================= -->
-  <div id="authScreen" class="fixed inset-0 z-50 bg-slate-900/90 backdrop-blur-md flex items-center justify-center p-4">
-    <div class="bg-white border border-slate-200 w-full max-w-md rounded-3xl p-8 shadow-2xl relative overflow-hidden">
-      <div class="absolute -top-12 -right-12 w-32 h-32 bg-krypton-neon/20 rounded-full blur-3xl pointer-events-none"></div>
+  <div id="authScreen" class="fixed inset-0 z-50 bg-black/90 backdrop-blur-2xl flex items-center justify-center p-4">
+    <div class="glass-card w-full max-w-md rounded-3xl p-8 relative overflow-hidden shadow-2xl border border-brand-border">
+      <div class="absolute -top-20 -right-20 w-44 h-44 bg-brand-neon/20 rounded-full blur-3xl pointer-events-none"></div>
       
       <div class="flex items-center space-x-3 mb-6">
-        <div class="w-10 h-10 rounded-2xl bg-slate-950 flex items-center justify-center text-krypton-neon font-black text-xl shadow-lg border border-slate-800">
+        <div class="w-11 h-11 rounded-2xl bg-brand-black border border-brand-neon/50 flex items-center justify-center text-brand-neon font-black text-xl shadow-lg neon-glow">
           K
         </div>
         <div>
-          <h2 class="text-lg font-black tracking-tight text-slate-900">KRYPTON</h2>
-          <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-widest">Internal Operations Portal</p>
+          <h2 class="text-xl font-extrabold tracking-tight text-white flex items-center gap-2">
+            KRYPTON <span class="text-[10px] px-2 py-0.5 rounded-full bg-brand-neonMuted text-brand-neon font-mono border border-brand-neon/30">v2.4</span>
+          </h2>
+          <p class="text-[11px] font-semibold text-brand-textMuted uppercase tracking-widest">Internal Operations Portal</p>
         </div>
       </div>
 
       <div class="mb-6">
-        <h3 class="text-xl font-bold text-slate-800">Authorized Access Only</h3>
-        <p class="text-xs text-slate-500 mt-1">Sign in with verified agency administrator credentials.</p>
+        <h3 class="text-lg font-bold text-slate-200">Authenticate Access</h3>
+        <p class="text-xs text-slate-400 mt-1">Authorized Agency Administrator credentials required.</p>
       </div>
 
       <form id="loginForm" class="space-y-4">
         <div>
-          <label class="block text-xs font-semibold text-slate-600 mb-1.5">Admin Email</label>
-          <input type="email" id="authEmail" required placeholder="admin@krypton.com" class="w-full bg-slate-50 border border-slate-300 text-sm px-4 py-3 rounded-xl outline-none krypton-border-focus transition text-slate-800">
+          <label class="block text-xs font-semibold text-slate-400 mb-1.5">Admin Email</label>
+          <input type="email" id="authEmail" required placeholder="admin@krypton.com" class="w-full bg-brand-surface border border-slate-700 text-sm px-4 py-3 rounded-xl outline-none neon-border-glow transition text-white placeholder-slate-600">
         </div>
         <div>
-          <label class="block text-xs font-semibold text-slate-600 mb-1.5">Secret Key / Password</label>
-          <input type="password" id="authPass" required placeholder="••••••••••••" class="w-full bg-slate-50 border border-slate-300 text-sm px-4 py-3 rounded-xl outline-none krypton-border-focus transition text-slate-800">
+          <label class="block text-xs font-semibold text-slate-400 mb-1.5">Security Passkey</label>
+          <input type="password" id="authPass" required placeholder="••••••••••••" class="w-full bg-brand-surface border border-slate-700 text-sm px-4 py-3 rounded-xl outline-none neon-border-glow transition text-white placeholder-slate-600">
         </div>
-        <p id="authError" class="text-xs font-medium text-rose-600 hidden bg-rose-50 p-2.5 rounded-lg border border-rose-200"></p>
-        <button type="submit" class="w-full py-3.5 bg-krypton-neon hover:bg-emerald-400 text-slate-950 font-bold text-sm rounded-xl transition transform active:scale-[0.98] shadow-md krypton-glow">
-          Authenticate & Unlock
+        <p id="authError" class="text-xs font-medium text-rose-400 hidden bg-rose-950/60 p-2.5 rounded-xl border border-rose-800"></p>
+        <button type="submit" class="w-full py-3.5 bg-brand-neon hover:bg-brand-neonHover text-brand-black font-extrabold text-sm rounded-xl transition transform active:scale-[0.98] shadow-lg neon-glow">
+          Unlock Agency Command Center
         </button>
       </form>
-      <p class="text-[11px] text-center text-slate-400 mt-6 font-medium">Secured by Krypton Cloud Infrastructure</p>
+      <div class="mt-6 flex items-center justify-between text-[11px] text-slate-500 font-mono">
+        <span>Protected by Cloud Firestore</span>
+        <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-brand-neon animate-ping"></span> Live</span>
+      </div>
     </div>
   </div>
 
   <!-- ================= MOBILE HEADER ================= -->
-  <header class="md:hidden bg-white border-b border-slate-200 px-4 py-3 flex items-center justify-between sticky top-0 z-30">
+  <header class="md:hidden bg-brand-surface/90 backdrop-blur-md border-b border-brand-border px-4 py-3 flex items-center justify-between sticky top-0 z-30">
     <div class="flex items-center space-x-2.5">
-      <div class="w-8 h-8 rounded-xl bg-slate-950 flex items-center justify-center text-krypton-neon font-black text-sm">K</div>
-      <span class="font-extrabold text-sm tracking-tight text-slate-900">KRYPTON</span>
+      <div class="w-8 h-8 rounded-xl bg-brand-black border border-brand-neon/40 flex items-center justify-center text-brand-neon font-black text-sm">K</div>
+      <span class="font-extrabold text-sm tracking-wider text-white">KRYPTON</span>
     </div>
-    <button id="mobileMenuToggle" class="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700">
+    <button id="mobileMenuToggle" class="p-2 rounded-xl bg-brand-card border border-brand-border text-slate-300 hover:text-white">
       <i data-lucide="menu" class="w-5 h-5"></i>
     </button>
   </header>
 
-  <!-- ================= SIDEBAR ================= -->
-  <aside id="sidebar" class="fixed md:static inset-y-0 left-0 z-40 w-64 bg-white border-r border-slate-200 flex flex-col justify-between transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out shadow-lg md:shadow-none">
+  <!-- ================= ULTRA-CYBER SIDEBAR ================= -->
+  <aside id="sidebar" class="fixed md:static inset-y-0 left-0 z-40 w-64 bg-brand-surface/95 border-r border-brand-border flex flex-col justify-between transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out">
     <div>
-      <!-- Brand Logo Bar -->
-      <div class="p-6 border-b border-slate-100 flex items-center justify-between">
+      <!-- Brand Logo Header -->
+      <div class="p-6 border-b border-brand-border flex items-center justify-between">
         <div class="flex items-center space-x-3">
-          <div class="w-9 h-9 rounded-xl bg-slate-950 flex items-center justify-center text-krypton-neon font-black text-lg border border-slate-800 shadow">
+          <div class="w-10 h-10 rounded-2xl bg-brand-black border border-brand-neon/60 flex items-center justify-center text-brand-neon font-black text-xl shadow-lg neon-glow">
             K
           </div>
           <div>
-            <h1 class="text-base font-black tracking-tight text-slate-900">KRYPTON</h1>
+            <h1 class="text-base font-extrabold tracking-tight text-white flex items-center gap-1.5">
+              KRYPTON
+            </h1>
             <div class="flex items-center space-x-1.5 mt-0.5">
-              <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-              <span class="text-[10px] font-semibold text-slate-400 uppercase tracking-widest">Enterprise Hub</span>
+              <span class="w-1.5 h-1.5 rounded-full bg-brand-neon animate-pulse"></span>
+              <span class="text-[10px] font-mono font-bold text-brand-textMuted tracking-wider uppercase">Live Operations</span>
             </div>
           </div>
         </div>
-        <button id="closeSidebarBtn" class="md:hidden text-slate-400 hover:text-slate-700">
+        <button id="closeSidebarBtn" class="md:hidden text-slate-400 hover:text-white">
           <i data-lucide="x" class="w-5 h-5"></i>
         </button>
       </div>
 
-      <!-- Navigation Links -->
-      <nav class="p-3 space-y-1">
-        <button class="tab-btn w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-sm font-bold bg-krypton-neon text-slate-950 krypton-glow transition" data-tab="dashboard">
+      <!-- Navigation Tabs (Exact Sequence) -->
+      <nav class="p-3 space-y-1 overflow-y-auto max-h-[calc(100vh-175px)]">
+        <button class="tab-btn w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-xs font-bold bg-brand-neon text-brand-black neon-glow transition" data-tab="dashboard">
           <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
           <span>Dashboard</span>
         </button>
-        <button class="tab-btn w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition" data-tab="clients">
+        <button class="tab-btn w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold text-slate-400 hover:bg-brand-card hover:text-white transition" data-tab="clients">
           <i data-lucide="users" class="w-4 h-4"></i>
           <span>Clients</span>
         </button>
-        <button class="tab-btn w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition" data-tab="projects">
+        <button class="tab-btn w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold text-slate-400 hover:bg-brand-card hover:text-white transition" data-tab="projects">
           <i data-lucide="folder-kanban" class="w-4 h-4"></i>
           <span>Projects</span>
         </button>
-        <button class="tab-btn w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition" data-tab="tasks">
+        <button class="tab-btn w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold text-slate-400 hover:bg-brand-card hover:text-white transition" data-tab="tasks">
           <i data-lucide="check-square" class="w-4 h-4"></i>
           <span>Tasks</span>
         </button>
-        <button class="tab-btn w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition" data-tab="recurring">
-          <i data-lucide="refresh-cw" class="w-4 h-4"></i>
-          <span>Recurring Clients</span>
-        </button>
-        <button class="tab-btn w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition" data-tab="payments">
+        <button class="tab-btn w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold text-slate-400 hover:bg-brand-card hover:text-white transition" data-tab="payments">
           <i data-lucide="receipt" class="w-4 h-4"></i>
           <span>Payments</span>
         </button>
-        <button class="tab-btn w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition" data-tab="social">
+        <button class="tab-btn w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold text-slate-400 hover:bg-brand-card hover:text-white transition" data-tab="recurring">
+          <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+          <span>Recurring Clients</span>
+        </button>
+        <button class="tab-btn w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold text-slate-400 hover:bg-brand-card hover:text-white transition" data-tab="social">
           <i data-lucide="share-2" class="w-4 h-4"></i>
-          <span>Content Schedule</span>
+          <span>Social Posts</span>
         </button>
-        <button class="tab-btn w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition" data-tab="team">
-          <i data-lucide="user-check" class="w-4 h-4"></i>
-          <span>Agency Team</span>
-        </button>
-        <button class="tab-btn w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition" data-tab="reports">
+        <button class="tab-btn w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold text-slate-400 hover:bg-brand-card hover:text-white transition" data-tab="reports">
           <i data-lucide="pie-chart" class="w-4 h-4"></i>
-          <span>Financial Reports</span>
+          <span>Reports</span>
+        </button>
+        <button class="tab-btn w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold text-slate-400 hover:bg-brand-card hover:text-white transition" data-tab="team">
+          <i data-lucide="user-check" class="w-4 h-4"></i>
+          <span>Team</span>
         </button>
       </nav>
     </div>
 
-    <!-- User Profile Bar & Sign Out -->
-    <div class="p-4 border-t border-slate-100 bg-slate-50/50">
+    <!-- Active User & Session Footer -->
+    <div class="p-4 border-t border-brand-border bg-brand-surface">
       <div class="flex items-center justify-between">
         <div class="flex items-center space-x-2.5 min-w-0">
-          <div class="w-8 h-8 rounded-full bg-slate-900 text-krypton-neon flex items-center justify-center font-bold text-xs uppercase flex-shrink-0">
+          <div class="w-8 h-8 rounded-full bg-brand-neonMuted border border-brand-neon/40 text-brand-neon flex items-center justify-center font-bold text-xs uppercase flex-shrink-0">
             A
           </div>
           <div class="min-w-0">
-            <p id="userEmailBadge" class="text-xs font-bold text-slate-800 truncate">Administrator</p>
-            <span class="inline-block text-[10px] text-emerald-700 bg-emerald-100/70 px-1.5 py-0.2 rounded font-semibold">Active Session</span>
+            <p id="userEmailBadge" class="text-xs font-bold text-slate-200 truncate font-mono">ADMIN</p>
+            <span class="inline-block text-[9px] text-brand-neon bg-brand-neonMuted px-2 py-0.5 rounded font-mono border border-brand-neon/20">Authenticated</span>
           </div>
         </div>
-        <button id="logoutBtn" title="Sign Out" class="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition">
+        <button id="logoutBtn" title="Lock Workspace & Sign Out" class="p-2 text-slate-400 hover:text-rose-400 hover:bg-rose-950/40 rounded-xl transition">
           <i data-lucide="log-out" class="w-4 h-4"></i>
         </button>
       </div>
     </div>
   </aside>
 
-  <!-- ================= MAIN CONTENT AREA ================= -->
+  <!-- ================= MAIN VIEWPORT ================= -->
   <main class="flex-1 flex flex-col min-w-0 overflow-y-auto">
+    
     <!-- Top Action Toolbar -->
-    <div class="bg-white border-b border-slate-200 px-4 md:px-8 py-3.5 flex flex-wrap items-center justify-between gap-3 sticky top-0 z-20">
-      <div class="flex items-center space-x-3 flex-1 min-w-[200px] max-w-md">
+    <div class="bg-brand-surface/80 backdrop-blur-md border-b border-brand-border px-4 md:px-8 py-3.5 flex flex-wrap items-center justify-between gap-3 sticky top-0 z-20">
+      
+      <!-- Global Realtime Search Filter -->
+      <div class="flex items-center space-x-3 flex-1 min-w-[220px] max-w-md">
         <div class="relative w-full">
-          <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3.5 top-3 pointer-events-none"></i>
-          <input type="text" id="globalSearch" placeholder="Search across clients, tasks, records..." class="w-full bg-slate-100 border border-slate-200 text-xs pl-10 pr-4 py-2.5 rounded-xl outline-none krypton-border-focus text-slate-800 transition">
+          <i data-lucide="search" class="w-4 h-4 text-slate-500 absolute left-3.5 top-3 pointer-events-none"></i>
+          <input type="text" id="globalSearch" placeholder="Search entries, phone numbers, tasks..." class="w-full bg-brand-card border border-brand-border text-xs pl-10 pr-4 py-2.5 rounded-xl outline-none neon-border-glow text-white placeholder-slate-500 transition">
         </div>
       </div>
 
+      <!-- Control Center Buttons -->
       <div class="flex items-center space-x-2.5">
-        <!-- Export Excel/CSV Button -->
-        <button id="exportCsvBtn" title="Download Excel Sheet" class="flex items-center space-x-2 px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold shadow-sm transition active:scale-95">
-          <i data-lucide="sheet" class="w-4 h-4 text-emerald-600"></i>
-          <span class="hidden sm:inline">Export Excel (CSV)</span>
+        <!-- Live Sync Status -->
+        <span class="hidden sm:inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-brand-card border border-brand-border text-[11px] font-mono text-slate-400">
+          <span class="w-2 h-2 rounded-full bg-brand-neon animate-pulse"></span>
+          <span>Google Sheets Dual-Sync</span>
+        </span>
+
+        <!-- Export CSV/Excel Button -->
+        <button id="exportCsvBtn" title="Download Excel (CSV) Sheet" class="flex items-center space-x-2 px-3.5 py-2.5 rounded-xl border border-brand-border bg-brand-card hover:bg-slate-800 text-slate-200 text-xs font-semibold shadow-sm transition active:scale-95">
+          <i data-lucide="sheet" class="w-4 h-4 text-brand-neon"></i>
+          <span class="hidden sm:inline">Export Excel</span>
         </button>
 
-        <button id="refreshBtn" title="Force Refresh" class="p-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 shadow-sm transition active:scale-95">
+        <!-- Force Refresh -->
+        <button id="refreshBtn" title="Force Resync" class="p-2.5 rounded-xl border border-brand-border bg-brand-card hover:bg-slate-800 text-slate-300 shadow-sm transition active:scale-95">
           <i id="refreshIcon" data-lucide="rotate-cw" class="w-4 h-4"></i>
         </button>
 
-        <button id="openModalBtn" class="flex items-center space-x-2 bg-krypton-neon hover:bg-emerald-400 text-slate-950 px-4 py-2.5 rounded-xl text-xs font-bold shadow transition krypton-glow active:scale-95">
+        <!-- Add Record Modal Trigger -->
+        <button id="openModalBtn" class="flex items-center space-x-2 bg-brand-neon hover:bg-brand-neonHover text-brand-black px-4 py-2.5 rounded-xl text-xs font-extrabold shadow-lg neon-glow transition active:scale-95">
           <i data-lucide="plus-circle" class="w-4 h-4"></i>
           <span id="newEntryBtnLabel">Add Entry</span>
         </button>
       </div>
     </div>
 
-    <!-- Workspace Container -->
+    <!-- Workspace View -->
     <div class="p-4 md:p-8 space-y-6 max-w-7xl w-full mx-auto">
       
-      <!-- Key KPI Header Counters -->
+      <!-- High-Tech KPI Cards -->
       <section class="grid grid-cols-2 lg:grid-cols-5 gap-3 md:gap-4">
-        <div class="bg-white border border-slate-200 p-4 rounded-2xl shadow-sm">
+        
+        <div class="glass-card p-4 rounded-2xl relative overflow-hidden">
           <div class="flex items-center justify-between text-slate-400 mb-1">
-            <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500">Total Clients</span>
-            <i data-lucide="users" class="w-3.5 h-3.5 text-slate-400"></i>
+            <span class="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-400">Total Clients</span>
+            <i data-lucide="users" class="w-3.5 h-3.5 text-brand-neon"></i>
           </div>
-          <div id="statClients" class="text-2xl font-black text-slate-900 font-mono">0</div>
+          <div id="statClients" class="text-2xl font-black text-white font-mono">0</div>
         </div>
 
-        <div class="bg-white border border-slate-200 p-4 rounded-2xl shadow-sm">
+        <div class="glass-card p-4 rounded-2xl relative overflow-hidden">
           <div class="flex items-center justify-between text-slate-400 mb-1">
-            <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500">Active Projects</span>
-            <i data-lucide="briefcase" class="w-3.5 h-3.5 text-slate-400"></i>
+            <span class="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-400">Active Pipelines</span>
+            <i data-lucide="briefcase" class="w-3.5 h-3.5 text-blue-400"></i>
           </div>
-          <div id="statProjects" class="text-2xl font-black text-slate-900 font-mono">0</div>
+          <div id="statProjects" class="text-2xl font-black text-white font-mono">0</div>
         </div>
 
-        <div class="bg-white border border-slate-200 p-4 rounded-2xl shadow-sm">
+        <div class="glass-card p-4 rounded-2xl relative overflow-hidden">
           <div class="flex items-center justify-between text-slate-400 mb-1">
-            <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500">Tasks Pending</span>
-            <i data-lucide="clock" class="w-3.5 h-3.5 text-slate-400"></i>
+            <span class="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-400">Tasks Pending</span>
+            <i data-lucide="clock" class="w-3.5 h-3.5 text-amber-400"></i>
           </div>
-          <div id="statTasks" class="text-2xl font-black text-slate-900 font-mono">0</div>
+          <div id="statTasks" class="text-2xl font-black text-white font-mono">0</div>
         </div>
 
-        <div class="bg-krypton-tint border-2 border-krypton-neon/80 p-4 rounded-2xl shadow-sm">
-          <div class="flex items-center justify-between text-slate-400 mb-1">
-            <span class="text-[11px] font-black uppercase tracking-wider text-krypton-dark">Monthly Retainers</span>
-            <i data-lucide="repeat" class="w-3.5 h-3.5 text-emerald-600"></i>
+        <div class="glass-card p-4 rounded-2xl border border-brand-neon/40 relative overflow-hidden">
+          <div class="flex items-center justify-between mb-1">
+            <span class="text-[10px] font-mono font-extrabold uppercase tracking-wider text-brand-neon">Active MRR</span>
+            <i data-lucide="repeat" class="w-3.5 h-3.5 text-brand-neon"></i>
           </div>
-          <div id="statMRR" class="text-2xl font-black text-slate-950 font-mono">₹0</div>
+          <div id="statMRR" class="text-2xl font-black text-brand-neon font-mono">₹0</div>
         </div>
 
-        <div class="bg-white border border-slate-200 p-4 rounded-2xl shadow-sm col-span-2 lg:col-span-1">
+        <div class="glass-card p-4 rounded-2xl col-span-2 lg:col-span-1 relative overflow-hidden">
           <div class="flex items-center justify-between text-slate-400 mb-1">
-            <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500">Total Revenue</span>
-            <i data-lucide="badge-indian-rupee" class="w-3.5 h-3.5 text-emerald-600"></i>
+            <span class="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-400">Revenue Recorded</span>
+            <i data-lucide="badge-indian-rupee" class="w-3.5 h-3.5 text-emerald-400"></i>
           </div>
-          <div id="statRevenue" class="text-2xl font-black text-slate-900 font-mono">₹0</div>
+          <div id="statRevenue" class="text-2xl font-black text-white font-mono">₹0</div>
         </div>
       </section>
 
-      <!-- Active Section Card View -->
-      <section class="bg-white border border-slate-200 rounded-3xl shadow-sm overflow-hidden">
-        <div class="px-6 py-4.5 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+      <!-- Main Data Sheet / Table Container -->
+      <section class="glass-card rounded-3xl overflow-hidden shadow-2xl">
+        <div class="px-6 py-4 border-b border-brand-border flex items-center justify-between bg-brand-surface/40">
           <div>
-            <h2 id="currentSectionTitle" class="text-sm font-extrabold text-slate-900 tracking-tight">Overview Dashboard</h2>
-            <p class="text-xs text-slate-400">Krypton internal active records</p>
+            <h2 id="currentSectionTitle" class="text-sm font-extrabold text-white tracking-wide flex items-center gap-2">
+              Overview Dashboard
+            </h2>
+            <p class="text-[11px] text-brand-textMuted font-mono">Real-time synchronized with Google Firestore & Sheets</p>
           </div>
-          <span id="recordCountLabel" class="text-xs font-semibold px-2.5 py-1 bg-white border border-slate-200 rounded-xl text-slate-600">
-            0 Items
+          <span id="recordCountLabel" class="text-xs font-mono font-bold px-3 py-1 bg-brand-card border border-brand-border rounded-xl text-brand-neon">
+            0 Records
           </span>
         </div>
 
-        <!-- Render Container (Tables or Dashboard) -->
-        <div id="tabContentContainer" class="overflow-x-auto min-h-[360px]">
+        <!-- Render Container (Tables or Dashboard Views) -->
+        <div id="tabContentContainer" class="overflow-x-auto min-h-[380px]">
           <!-- Injected via JavaScript -->
         </div>
       </section>
@@ -288,36 +342,36 @@
   </main>
 
   <!-- ================= UNIVERSAL ADD MODAL ================= -->
-  <div id="entryModal" class="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm hidden items-center justify-center p-4">
-    <div class="bg-white border border-slate-200 w-full max-w-lg rounded-3xl p-6 md:p-8 shadow-2xl animate-in fade-in zoom-in-95 duration-150">
+  <div id="entryModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md hidden items-center justify-center p-4">
+    <div class="glass-card w-full max-w-lg rounded-3xl p-6 md:p-8 shadow-2xl border border-brand-border">
       <div class="flex items-center justify-between mb-5">
         <div>
-          <h3 id="modalTitle" class="text-base font-black text-slate-900">Add New Entry</h3>
-          <p class="text-xs text-slate-400">Fill in the fields below to sync with Firestore</p>
+          <h3 id="modalTitle" class="text-base font-extrabold text-white">Add Record</h3>
+          <p class="text-xs text-brand-textMuted">Syncs automatically across Firebase & Google Sheets</p>
         </div>
-        <button id="closeModalBtn" class="text-slate-400 hover:text-slate-700 p-1.5 rounded-xl hover:bg-slate-100">
+        <button id="closeModalBtn" class="text-slate-400 hover:text-white p-1.5 rounded-xl hover:bg-brand-card">
           <i data-lucide="x" class="w-5 h-5"></i>
         </button>
       </div>
 
       <form id="universalForm" class="space-y-4">
         <div id="formFieldsContainer" class="space-y-3.5 max-h-[60vh] overflow-y-auto pr-1">
-          <!-- Dynamic Form Inputs -->
+          <!-- Dynamic Input Fields with Combobox support -->
         </div>
 
-        <div class="pt-4 border-t border-slate-100 flex items-center justify-end space-x-3">
-          <button type="button" onclick="document.getElementById('entryModal').classList.add('hidden'); document.getElementById('entryModal').classList.remove('flex');" class="px-4 py-2.5 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 transition">
+        <div class="pt-4 border-t border-brand-border flex items-center justify-end space-x-3">
+          <button type="button" onclick="document.getElementById('entryModal').classList.add('hidden'); document.getElementById('entryModal').classList.remove('flex');" class="px-4 py-2.5 rounded-xl text-xs font-semibold text-slate-400 hover:text-white transition">
             Cancel
           </button>
-          <button type="submit" class="px-6 py-2.5 rounded-xl text-xs font-bold bg-krypton-neon hover:bg-emerald-400 text-slate-950 krypton-glow transition shadow">
-            Save & Sync Record
+          <button type="submit" class="px-6 py-2.5 rounded-xl text-xs font-extrabold bg-brand-neon hover:bg-brand-neonHover text-brand-black neon-glow transition shadow">
+            Save & Sync Live
           </button>
         </div>
       </form>
     </div>
   </div>
 
-  <script type="module" src="app.js"></script>
+  <!-- Force Cache Buster on JS Load -->
+  <script type="module" src="app.js?v=3.0"></script>
 </body>
 </html>
-<script type="module" src="app.js?v=2.0"></script>
