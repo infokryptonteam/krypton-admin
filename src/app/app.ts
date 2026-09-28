@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { FormControl, FormRecord, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { KryptonApiService } from './krypton-api.service';
 
@@ -116,13 +116,15 @@ export class App implements OnInit {
   private loginLockUntil = 0;
   private noticeTimer: ReturnType<typeof setTimeout> | undefined;
 
-  constructor(private readonly api: KryptonApiService) {}
+  constructor(
+    private readonly api: KryptonApiService,
+    private readonly changeDetector: ChangeDetectorRef,
+  ) {}
 
   ngOnInit(): void {
-    this.api.call('logoutUser').subscribe({
-      next: () => this.authReady = true,
-      error: () => this.authReady = true,
-    });
+    this.authReady = true;
+    this.changeDetector.markForCheck();
+    this.api.call('logoutUser').subscribe({ error: () => undefined });
   }
 
   get currentPage(): (typeof pageDefinitions)[number] {
@@ -191,6 +193,7 @@ export class App implements OnInit {
         this.loginBusy = false;
         if (!response?.success) {
           this.handleFailedLogin(response?.message || 'Invalid email or password.');
+          this.changeDetector.markForCheck();
           return;
         }
         this.loginAttempts = 0;
@@ -198,11 +201,13 @@ export class App implements OnInit {
         this.userEmail = response.email || email;
         this.loginForm.controls['password'].reset('');
         this.loadData();
+        this.changeDetector.markForCheck();
       },
       error: error => {
         this.loginBusy = false;
         this.loginError = 'Unable to sign in right now. Please try again.';
         console.error('KRYPTON login error:', error);
+        this.changeDetector.markForCheck();
       },
     });
   }
@@ -284,9 +289,11 @@ export class App implements OnInit {
         this.appError = '';
         this.showNotice('Record deleted.');
         this.loadData();
+        this.changeDetector.markForCheck();
       },
       error: error => {
         if (!this.handleAuthFailure(error)) this.appError = this.errorMessage(error, 'Could not delete this record.');
+        this.changeDetector.markForCheck();
       },
     });
   }
@@ -340,8 +347,14 @@ export class App implements OnInit {
     const wasEditing = Boolean(this.editingRecordId);
     this.saving = true;
     this.api.call(action, payload).subscribe({
-      next: () => this.finishSave(wasEditing ? 'Record updated successfully.' : 'Record saved successfully.'),
-      error: error => this.saveFailed(error),
+      next: () => {
+        this.finishSave(wasEditing ? 'Record updated successfully.' : 'Record saved successfully.');
+        this.changeDetector.markForCheck();
+      },
+      error: error => {
+        this.saveFailed(error);
+        this.changeDetector.markForCheck();
+      },
     });
   }
 
@@ -355,6 +368,7 @@ export class App implements OnInit {
     this.saving = false;
     if (this.handleAuthFailure(error)) return;
     this.modalError = this.errorMessage(error, 'Could not save this record.');
+    this.changeDetector.markForCheck();
   }
 
   createBackup(): void {
@@ -371,10 +385,12 @@ export class App implements OnInit {
         link.click();
         URL.revokeObjectURL(url);
         this.showNotice('Workspace backup downloaded.');
+        this.changeDetector.markForCheck();
       },
       error: error => {
         this.backupBusy = false;
         if (!this.handleAuthFailure(error)) this.appError = this.errorMessage(error, 'Backup failed.');
+        this.changeDetector.markForCheck();
       },
     });
   }
@@ -477,10 +493,12 @@ export class App implements OnInit {
           if (!Array.isArray(this.data[key])) this.data[key] = [];
         }
         this.dataLoading = false;
+        this.changeDetector.markForCheck();
       },
       error: error => {
         this.dataLoading = false;
         if (!this.handleAuthFailure(error)) this.appError = this.errorMessage(error, 'Could not load dashboard data.');
+        this.changeDetector.markForCheck();
       },
     });
   }
@@ -492,6 +510,7 @@ export class App implements OnInit {
       this.data = emptyWorkspace();
       this.loginError = message;
       this.closeModal();
+      this.changeDetector.markForCheck();
       return true;
     }
     return false;
@@ -504,6 +523,10 @@ export class App implements OnInit {
   private showNotice(message: string): void {
     this.notice = message;
     if (this.noticeTimer) clearTimeout(this.noticeTimer);
-    this.noticeTimer = setTimeout(() => this.notice = '', 4000);
+    this.noticeTimer = setTimeout(() => {
+      this.notice = '';
+      this.changeDetector.markForCheck();
+    }, 4000);
+    this.changeDetector.markForCheck();
   }
 }
