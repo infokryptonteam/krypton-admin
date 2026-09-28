@@ -1,21 +1,28 @@
+<!-- Full Screen Background Wave Canvas & Ambient Glow Layer -->
+<div class="fixed inset-0 pointer-events-none z-0 overflow-hidden">
+  <div class="absolute inset-0 bg-[radial-gradient(circle_at_75%_25%,rgba(16,208,58,0.18)_0%,transparent_55%),radial-gradient(circle_at_20%_75%,rgba(56,189,248,0.12)_0%,transparent_50%)]"></div>
+  <canvas id="topographyCanvas" class="w-full h-full block"></canvas>
+</div>
+
 @if (!authReady) {
-  <main id="loginScreen" class="fixed inset-0 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm">
+  <main id="loginScreen" class="fixed inset-0 z-50 flex items-center justify-center p-4">
     <div class="krypton-glass-panel px-6 py-4 rounded-2xl text-xs font-bold text-slate-800 shadow-xl" role="status">
       Checking secure session...
     </div>
   </main>
 } @else if (!authenticated) {
-  <main id="loginScreen" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-md flex items-center justify-center p-4">
-    <form class="bg-white/95 backdrop-blur-2xl border border-emerald-300 w-full max-w-md rounded-3xl p-8 shadow-2xl relative"
+  <!-- Transparent Frosted Acrylic Login Card -->
+  <main id="loginScreen" class="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <form class="krypton-glass-panel w-full max-w-md rounded-3xl p-8 shadow-2xl relative"
           [formGroup]="loginForm" (ngSubmit)="submitLogin()" novalidate>
       
       <div class="flex items-center space-x-3.5 mb-6">
-        <div class="w-12 h-12 rounded-2xl bg-emerald-100 border border-emerald-300 flex items-center justify-center font-black text-emerald-800 text-xl shadow-sm" aria-hidden="true">
+        <div class="w-12 h-12 rounded-2xl bg-emerald-100/70 border border-emerald-300 flex items-center justify-center font-black text-emerald-800 text-xl shadow-sm" aria-hidden="true">
           K
         </div>
         <div>
-          <h1 class="text-xl font-extrabold text-slate-900">KRYPTON Admin</h1>
-          <p class="text-[10px] font-bold text-emerald-700 uppercase tracking-widest">Manage your business in one place</p>
+          <h1 class="text-xl font-extrabold text-slate-900 tracking-tight">KRYPTON Admin</h1>
+          <p class="text-[10px] font-bold text-emerald-700 uppercase tracking-widest">Operations Workspace</p>
         </div>
       </div>
 
@@ -23,29 +30,29 @@
         <div>
           <label for="loginEmail" class="block text-xs font-bold text-slate-700 mb-1">Email</label>
           <input id="loginEmail" type="email" formControlName="email" placeholder="Enter email" autocomplete="username"
-                 class="w-full bg-white/80 border border-slate-300 text-xs px-3.5 py-2.5 rounded-xl outline-none focus:border-emerald-500 text-slate-900">
+                 class="w-full bg-white/50 backdrop-blur-md border border-slate-300/80 text-xs px-3.5 py-2.5 rounded-xl outline-none focus:border-emerald-500 focus:bg-white/80 text-slate-900 transition">
         </div>
 
         <div>
           <label for="loginPassword" class="block text-xs font-bold text-slate-700 mb-1">Password</label>
           <div class="relative">
             <input id="loginPassword" [type]="passwordVisible ? 'text' : 'password'" formControlName="password" placeholder="Enter password" autocomplete="current-password"
-                   class="w-full bg-white/80 border border-slate-300 text-xs px-3.5 py-2.5 rounded-xl outline-none focus:border-emerald-500 text-slate-900">
-            <button class="absolute right-3 top-2.5 text-xs text-slate-400 font-bold" type="button" (click)="togglePassword()" [attr.aria-label]="passwordVisible ? 'Hide password' : 'Show password'">
+                   class="w-full bg-white/50 backdrop-blur-md border border-slate-300/80 text-xs px-3.5 py-2.5 rounded-xl outline-none focus:border-emerald-500 focus:bg-white/80 text-slate-900 transition">
+            <button class="absolute right-3 top-2.5 text-xs text-slate-500 font-bold" type="button" (click)="togglePassword()" [attr.aria-label]="passwordVisible ? 'Hide password' : 'Show password'">
               {{ passwordVisible ? 'Hide' : 'Show' }}
             </button>
           </div>
         </div>
 
         @if (loginError) {
-          <p id="loginError" class="text-xs font-semibold text-rose-600 bg-rose-50 p-2.5 rounded-xl border border-rose-200" role="alert">
+          <p id="loginError" class="text-xs font-semibold text-rose-600 bg-rose-50/80 backdrop-blur-sm p-2.5 rounded-xl border border-rose-200" role="alert">
             {{ loginError }}
           </p>
         }
 
-        <button class="w-full py-2.5 krypton-glow-btn text-white font-bold text-xs rounded-xl shadow-md cursor-pointer disabled:opacity-50"
+        <button class="w-full py-2.5 krypton-glow-btn text-white font-bold text-xs rounded-xl shadow-md cursor-pointer disabled:opacity-50 transition active:scale-[0.99]"
                 id="loginButton" type="submit" [disabled]="loginBusy">
-          {{ loginBusy ? 'Signing in...' : 'Sign In' }}
+          {{ loginBusy ? 'Signing in...' : 'Unlock Operations Hub' }}
         </button>
       </div>
     </form>
