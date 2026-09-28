@@ -42,9 +42,9 @@
 
   <style>
     :root {
-      --bg-base: #E2ECE5;
-      --card-frosted: rgba(246, 251, 248, 0.85);
-      --card-border: rgba(167, 243, 208, 0.7);
+      --bg-base: #E7EFEA;
+      --card-frosted: rgba(246, 251, 248, 0.88);
+      --card-border: rgba(167, 243, 208, 0.85);
     }
 
     body {
@@ -55,88 +55,32 @@
       min-height: 100vh;
     }
 
-    /* Ambient Dynamic Aurora Background */
-    .aurora-container {
+    /* Fullscreen Lag-Free Topographic Canvas */
+    #topographyCanvas {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    /* Ambient Subtle Depth Tint */
+    .ambient-depth {
       position: fixed;
       inset: 0;
       z-index: 0;
       pointer-events: none;
-      overflow: hidden;
-    }
-
-    .aurora-orb {
-      position: absolute;
-      border-radius: 50%;
-      filter: blur(65px);
-      mix-blend-mode: multiply;
-      opacity: 0.65;
-      animation: auroraOrbit 20s infinite alternate ease-in-out;
-    }
-
-    .aurora-1 {
-      top: -12%;
-      left: 10%;
-      width: 520px;
-      height: 520px;
-      background: radial-gradient(circle, #10D03A 0%, rgba(16, 208, 58, 0.15) 70%, transparent 100%);
-      animation-duration: 16s;
-    }
-
-    .aurora-2 {
-      bottom: -10%;
-      right: 12%;
-      width: 580px;
-      height: 580px;
-      background: radial-gradient(circle, #38BDF8 0%, rgba(56, 189, 248, 0.2) 65%, transparent 100%);
-      animation-duration: 22s;
-      animation-delay: -4s;
-    }
-
-    .aurora-3 {
-      top: 35%;
-      right: 25%;
-      width: 440px;
-      height: 440px;
-      background: radial-gradient(circle, #86EFAC 0%, rgba(134, 239, 172, 0.25) 70%, transparent 100%);
-      animation-duration: 18s;
-      animation-delay: -8s;
-    }
-
-    .aurora-4 {
-      bottom: 25%;
-      left: 5%;
-      width: 480px;
-      height: 480px;
-      background: radial-gradient(circle, #34D399 0%, rgba(52, 211, 153, 0.2) 65%, transparent 100%);
-      animation-duration: 24s;
-      animation-delay: -12s;
-    }
-
-    @keyframes auroraOrbit {
-      0% { transform: translate(0px, 0px) rotate(0deg) scale(1); }
-      33% { transform: translate(65px, -45px) rotate(120deg) scale(1.15); }
-      66% { transform: translate(-50px, 60px) rotate(240deg) scale(0.92); }
-      100% { transform: translate(40px, 30px) rotate(360deg) scale(1.08); }
-    }
-
-    .cyber-mesh-overlay {
-      position: fixed;
-      inset: 0;
-      z-index: 1;
-      pointer-events: none;
-      background-image: 
-        linear-gradient(to right, rgba(15, 23, 42, 0.035) 1px, transparent 1px),
-        linear-gradient(to bottom, rgba(15, 23, 42, 0.035) 1px, transparent 1px);
-      background-size: 32px 32px;
-      mask-image: radial-gradient(ellipse at center, rgba(0,0,0,1) 40%, rgba(0,0,0,0.4) 100%);
+      background: radial-gradient(circle at 80% 20%, rgba(16, 208, 58, 0.12) 0%, transparent 50%),
+                  radial-gradient(circle at 10% 80%, rgba(56, 189, 248, 0.08) 0%, transparent 45%);
     }
 
     .krypton-card {
       background: var(--card-frosted);
-      backdrop-filter: blur(18px);
-      -webkit-backdrop-filter: blur(18px);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
       border: 1px solid var(--card-border);
-      box-shadow: 0 10px 30px -5px rgba(22, 101, 52, 0.06), 0 4px 12px -2px rgba(15, 23, 42, 0.03);
+      box-shadow: 0 10px 28px -5px rgba(22, 101, 52, 0.07), 0 4px 12px -2px rgba(15, 23, 42, 0.03);
     }
 
     .krypton-glow-btn {
@@ -154,7 +98,7 @@
     }
 
     .krypton-logo-badge {
-      background: linear-gradient(135deg, rgba(216, 247, 226, 0.9) 0%, rgba(167, 243, 208, 0.7) 100%);
+      background: linear-gradient(135deg, rgba(216, 247, 226, 0.95) 0%, rgba(167, 243, 208, 0.75) 100%);
       border: 1.5px solid #86EFAC;
     }
 
@@ -176,14 +120,9 @@
 </head>
 <body class="min-h-screen flex flex-col md:flex-row antialiased selection:bg-krypton-tint selection:text-krypton-dark relative">
 
-  <!-- Aurora Layer -->
-  <div class="aurora-container">
-    <div class="aurora-orb aurora-1"></div>
-    <div class="aurora-orb aurora-2"></div>
-    <div class="aurora-orb aurora-3"></div>
-    <div class="aurora-orb aurora-4"></div>
-  </div>
-  <div class="cyber-mesh-overlay"></div>
+  <!-- ================= TOPOGRAPHIC CANVAS LAYER ================= -->
+  <div class="ambient-depth"></div>
+  <canvas id="topographyCanvas"></canvas>
 
   <!-- Toast Notification -->
   <div id="toastNotification" class="fixed top-5 right-5 z-50 transform translate-y-[-160%] opacity-0 transition-all duration-300 pointer-events-none flex items-center space-x-3 px-4 py-3 rounded-2xl bg-white/95 backdrop-blur-xl border border-krypton-border shadow-2xl max-w-sm">
@@ -234,7 +173,7 @@
   </div>
 
   <!-- Mobile Header -->
-  <header class="md:hidden bg-white/70 backdrop-blur-xl border-b border-slate-300/80 px-4 py-3 flex items-center justify-between sticky top-0 z-30">
+  <header class="md:hidden bg-white/75 backdrop-blur-xl border-b border-slate-300/80 px-4 py-3 flex items-center justify-between sticky top-0 z-30">
     <div class="flex items-center space-x-2.5">
       <div class="w-9 h-9 rounded-xl krypton-logo-badge p-1 flex items-center justify-center overflow-hidden">
         <img src="./25535.png" onerror="this.onerror=null; this.src='./logo.png';" alt="Krypton Logo" class="w-full h-full object-contain">
@@ -247,7 +186,7 @@
   </header>
 
   <!-- Sidebar -->
-  <aside id="sidebar" class="fixed md:static inset-y-0 left-0 z-40 w-64 bg-white/75 backdrop-blur-2xl border-r border-slate-300/80 flex flex-col justify-between transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out">
+  <aside id="sidebar" class="fixed md:static inset-y-0 left-0 z-40 w-64 bg-white/80 backdrop-blur-2xl border-r border-slate-300/80 flex flex-col justify-between transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out">
     <div>
       <div class="p-5 border-b border-slate-200/80 flex items-center justify-between">
         <div class="flex items-center space-x-3">
@@ -313,7 +252,7 @@
     </div>
 
     <!-- Active User Footer -->
-    <div class="p-3.5 border-t border-slate-200/80 bg-white/50 backdrop-blur-md">
+    <div class="p-3.5 border-t border-slate-200/80 bg-white/60 backdrop-blur-md">
       <div class="flex items-center justify-between">
         <div class="flex items-center space-x-2.5 min-w-0">
           <div class="w-8 h-8 rounded-full bg-krypton-tint text-krypton-dark font-bold border border-krypton-border flex items-center justify-center text-xs uppercase flex-shrink-0">
@@ -333,7 +272,7 @@
 
   <!-- Main Viewport -->
   <main class="flex-1 flex flex-col min-w-0 overflow-y-auto relative z-10">
-    <div class="bg-white/70 backdrop-blur-xl border-b border-slate-300/80 px-4 md:px-8 py-3 flex flex-wrap items-center justify-between gap-3 sticky top-0 z-20">
+    <div class="bg-white/75 backdrop-blur-xl border-b border-slate-300/80 px-4 md:px-8 py-3 flex flex-wrap items-center justify-between gap-3 sticky top-0 z-20">
       <div class="flex items-center space-x-3 flex-1 min-w-[200px] max-w-sm">
         <div class="relative w-full">
           <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3 top-2.5 pointer-events-none"></i>
@@ -456,7 +395,71 @@
     </div>
   </div>
 
-  <!-- Locked Cache-Buster V200 -->
-  <script type="module" src="app.js?v=200.0"></script>
+  <!-- ================= LAG-FREE TOPOGRAPHIC WAVE ENGINE ================= -->
+  <script>
+    (function initKryptonTopography() {
+      const canvas = document.getElementById('topographyCanvas');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+
+      let w, h;
+      function resize() {
+        w = canvas.width = window.innerWidth;
+        h = canvas.height = window.innerHeight;
+      }
+      resize();
+      window.addEventListener('resize', resize);
+
+      let step = 0;
+      const lineCount = 18;
+      const pointStep = 28; // Optimal performance step
+
+      function draw() {
+        ctx.clearRect(0, 0, w, h);
+        step += 0.0065; // Ultra smooth low-speed undulation
+
+        const startY = h * 0.25;
+        const totalHeight = h * 0.65;
+        const gap = totalHeight / lineCount;
+
+        for (let i = 0; i < lineCount; i++) {
+          const baseY = startY + i * gap;
+          const progress = i / lineCount;
+          
+          // Dynamic gradient per elevation curve
+          const alpha = 0.12 + Math.sin(progress * Math.PI) * 0.24;
+          ctx.strokeStyle = `rgba(16, 208, 58, ${alpha})`;
+          ctx.lineWidth = i % 3 === 0 ? 1.5 : 0.85;
+
+          ctx.beginPath();
+          let started = false;
+
+          for (let x = -50; x <= w + 50; x += pointStep) {
+            // Harmonic wave equations
+            const wave1 = Math.sin(x * 0.0035 + step + i * 0.22) * 42;
+            const wave2 = Math.cos(x * 0.007 - step * 0.8 + i * 0.15) * 22;
+            const wave3 = Math.sin((x + i * 15) * 0.0018 + step * 1.2) * 18;
+            
+            const y = baseY + wave1 + wave2 + wave3;
+
+            if (!started) {
+              ctx.moveTo(x, y);
+              started = true;
+            } else {
+              ctx.lineTo(x, y);
+            }
+          }
+          ctx.stroke();
+        }
+
+        requestAnimationFrame(draw);
+      }
+
+      requestAnimationFrame(draw);
+    })();
+  </script>
+
+  <!-- Locked Cache-Buster V300 -->
+  <script type="module" src="app.js?v=300.0"></script>
 </body>
 </html>
