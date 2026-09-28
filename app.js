@@ -15,7 +15,7 @@ import {
   serverTimestamp 
 } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
 
-// ================= 1. KRYPTON REAL FIREBASE & GOOGLE SHEET CONFIG =================
+// ================= 1. KRYPTON REAL FIREBASE & APPS SCRIPT CONFIG =================
 const firebaseConfig = {
   apiKey: "AIzaSyAYLFZsORRugzjOkBnA5P4hxux517mlGfE",
   authDomain: "krypton-admin-d96be.firebaseapp.com",
@@ -25,7 +25,7 @@ const firebaseConfig = {
   appId: "1:375617512339:web:2baefdb4baa87558babe66"
 };
 
-// Connected Google Apps Script Webhook URL
+// Connected Webhook URL for Google Sheets
 const GOOGLE_SHEET_WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbwgX71PP4Fjf0ldE-BjaWfSLdYp8Sh2Ff0AO3sa0ZWpJgnF5EQJyJZGXDlA6xFJ6ST-Jg/exec";
 
 const app = initializeApp(firebaseConfig);
@@ -60,20 +60,20 @@ function showToast(title, message, isSuccess = true) {
   tMsg.textContent = message;
 
   if (isSuccess) {
-    tIcon.className = "w-8 h-8 rounded-xl bg-krypton-tint border border-krypton-border flex items-center justify-center text-krypton-dark flex-shrink-0";
-    tIcon.innerHTML = `<i data-lucide="check" class="w-4 h-4 text-emerald-600"></i>`;
+    tIcon.className = "w-8 h-8 rounded-xl bg-brand-neonMuted border border-brand-neon/40 flex items-center justify-center text-brand-neon flex-shrink-0";
+    tIcon.innerHTML = `<i data-lucide="check" class="w-4 h-4 text-brand-neon"></i>`;
   } else {
-    tIcon.className = "w-8 h-8 rounded-xl bg-rose-50 border border-rose-200 flex items-center justify-center text-rose-600 flex-shrink-0";
-    tIcon.innerHTML = `<i data-lucide="alert-triangle" class="w-4 h-4 text-rose-600"></i>`;
+    tIcon.className = "w-8 h-8 rounded-xl bg-rose-950/60 border border-rose-800 flex items-center justify-center text-rose-400 flex-shrink-0";
+    tIcon.innerHTML = `<i data-lucide="alert-triangle" class="w-4 h-4 text-rose-400"></i>`;
   }
 
   if (window.lucide) lucide.createIcons();
-  toast.classList.remove("translate-y-[-150%]", "opacity-0");
+  toast.classList.remove("translate-y-[-160%]", "opacity-0");
   toast.classList.add("translate-y-0", "opacity-100");
 
   setTimeout(() => {
     toast.classList.remove("translate-y-0", "opacity-100");
-    toast.classList.add("translate-y-[-150%]", "opacity-0");
+    toast.classList.add("translate-y-[-160%]", "opacity-0");
   }, 3500);
 }
 
@@ -89,7 +89,7 @@ onAuthStateChanged(auth, (user) => {
     authScreen.classList.add("hidden");
     const namePart = user.email.split("@")[0];
     if (userEmailBadge) userEmailBadge.textContent = namePart.toUpperCase();
-    showToast("Access Granted", `Welcome back, ${namePart}! Krypton portal ready.`);
+    showToast("Session Authenticated", `Welcome back, ${namePart}! Command hub online.`);
     initLiveSubscriptions();
   } else {
     authScreen.classList.remove("hidden");
@@ -106,7 +106,7 @@ if (loginForm) {
       await signInWithEmailAndPassword(auth, email, pass);
     } catch (err) {
       if (authError) {
-        authError.textContent = "Invalid admin credentials. Please re-check.";
+        authError.textContent = "Access Denied: Invalid credentials.";
         authError.classList.remove("hidden");
       }
     }
@@ -115,9 +115,9 @@ if (loginForm) {
 
 if (logoutBtn) {
   logoutBtn.addEventListener("click", async () => {
-    if (confirm("Are you sure you want to lock the Krypton workspace and log out?")) {
+    if (confirm("Lock Krypton command console and sign out?")) {
       await signOut(auth);
-      showToast("Logged Out", "Workspace locked successfully.", false);
+      showToast("Console Locked", "Administrator session closed.", false);
     }
   });
 }
@@ -139,7 +139,7 @@ if (closeSidebarBtn && sidebar) {
   });
 }
 
-// ================= 5. REALTIME DATA SYNC =================
+// ================= 5. REALTIME DATA SUBSCRIPTIONS =================
 let unsubscribers = [];
 const collections = ["clients", "projects", "tasks", "recurring", "payments", "social", "team"];
 
@@ -159,7 +159,7 @@ function initLiveSubscriptions() {
   });
 }
 
-// ================= 6. KPI METRICS =================
+// ================= 6. KPI CALCULATIONS =================
 function updateDashboardCounts() {
   const elClients = document.getElementById("statClients");
   const elProjects = document.getElementById("statProjects");
@@ -184,11 +184,11 @@ function updateDashboardCounts() {
   if (elRev) elRev.textContent = `₹${totalRev.toLocaleString()}`;
 }
 
-// ================= 7. FORM SCHEMAS =================
+// ================= 7. FORM SCHEMAS (WITH CUSTOM COMBOBOX & URLS) =================
 const schemas = {
   clients: [
-    { name: "name", label: "Client or Business Name", type: "text", required: true },
-    { name: "phone", label: "WhatsApp / Contact", type: "text", required: true },
+    { name: "name", label: "Client / Business Name", type: "text", required: true },
+    { name: "phone", label: "WhatsApp / Contact Phone", type: "text", required: true },
     { 
       name: "service", 
       label: "Selected Service (Pick or Type Custom)", 
@@ -199,71 +199,71 @@ const schemas = {
         "YouTube Documentary Editing", 
         "Social Media Management", 
         "Branding & Logo Design", 
-        "Performance Marketing / Ads", 
+        "Performance Ads & Meta Marketing", 
         "Full Agency Retainer", 
-        "SEO Optimization"
+        "SEO Optimization & Strategy"
       ],
-      placeholder: "Type custom service or choose from list...",
+      placeholder: "Type custom service or choose...",
       required: true 
     },
     { name: "status", label: "Relationship Status", type: "select", options: ["Active Client", "New Lead", "Completed"] }
   ],
   projects: [
-    { name: "title", label: "Project Title", type: "text", required: true },
+    { name: "title", label: "Project Deliverable Title", type: "text", required: true },
     { name: "client", label: "Client Name", type: "text", required: true },
     { name: "budget", label: "Project Value (₹)", type: "number", required: true },
-    { name: "deadline", label: "Delivery Due Date", type: "date", required: true },
+    { name: "deadline", label: "Due Date", type: "date", required: true },
     { name: "status", label: "Execution Stage", type: "select", options: ["Planning", "In Progress", "In Review", "Completed"] },
-    { name: "fileUrl", label: "File / Deliverable URL (Drive/Figma/Canva)", type: "url", placeholder: "https://...", required: false }
+    { name: "fileUrl", label: "File / Deliverable URL (Drive / Figma / Canva)", type: "url", placeholder: "https://...", required: false }
   ],
   tasks: [
     { name: "task", label: "Task Description", type: "text", required: true },
     { name: "assignee", label: "Assigned To", type: "text", required: true },
     { name: "priority", label: "Priority Level", type: "select", options: ["Normal", "High", "Urgent"] },
-    { name: "status", label: "Progress Status", type: "select", options: ["To Do", "In Progress", "Done"] }
+    { name: "status", label: "Task Status", type: "select", options: ["To Do", "In Progress", "Done"] }
   ],
   recurring: [
-    { name: "clientName", label: "Client / Brand", type: "text", required: true },
-    { name: "monthlyFee", label: "Monthly Retainer (₹)", type: "number", required: true },
+    { name: "clientName", label: "Client / Brand Name", type: "text", required: true },
+    { name: "monthlyFee", label: "Monthly Retainer Fee (₹)", type: "number", required: true },
     { 
       name: "serviceScope", 
       label: "Scope Package (Pick or Type Custom)", 
       type: "datalist", 
       options: [
         "Daily Reels / Shorts Package (30/mo)", 
-        "Alternate Days Editing (15 Reels/mo)", 
+        "Alternate Days Reels (15/mo)", 
         "Complete Social Media Growth", 
         "Website Maintenance & SEO", 
         "Full Content Agency Retainer"
       ],
-      placeholder: "e.g. 30 Reels + 4 YouTube Videos",
+      placeholder: "Type custom scope or quota...",
       required: true 
     },
-    { name: "monthlyQuota", label: "Monthly Target Quota", type: "text", placeholder: "e.g. 30 Reels / Month", required: true },
-    { name: "completedCount", label: "Delivered Till Date", type: "text", placeholder: "e.g. 12 Delivered", required: false },
-    { name: "dailyUpdate", label: "Today's Work Log / Post Topic", type: "text", placeholder: "e.g. Reel #12 posted on Instagram", required: false },
-    { name: "workUrl", label: "Live Reel / Post / Asset URL", type: "url", placeholder: "https://instagram.com/reel/... ya Drive Link", required: false },
+    { name: "monthlyQuota", label: "Monthly Target Deliverables", type: "text", placeholder: "e.g. 30 Reels / Month", required: true },
+    { name: "completedCount", label: "Delivered Till Date", type: "text", placeholder: "e.g. 14 Delivered", required: false },
+    { name: "dailyUpdate", label: "Today's Work Log / Post Update", type: "text", placeholder: "e.g. Reel #14 rendered & published", required: false },
+    { name: "workUrl", label: "Delivered Reel / Post / Asset Link", type: "url", placeholder: "https://instagram.com/reel/... ya Drive Link", required: false },
     { name: "renewalDay", label: "Billing Cycle Day (e.g. 1st or 10th)", type: "text", required: true },
     { name: "subscriptionStatus", label: "Retainer State", type: "select", options: ["Active", "Paused", "Cancelled"] }
   ],
   payments: [
     { name: "client", label: "Client Name", type: "text", required: true },
     { name: "amount", label: "Amount Received (₹)", type: "number", required: true },
-    { name: "type", label: "Billing Milestones", type: "select", options: ["Advance Payment (50%)", "Milestone Payment", "Final Balance", "Monthly Retainer"] },
+    { name: "type", label: "Billing Milestone", type: "select", options: ["Advance Payment (50%)", "Milestone Payment", "Final Balance", "Monthly Retainer"] },
     { name: "date", label: "Payment Date", type: "date", required: true }
   ],
   social: [
     { name: "title", label: "Content / Reel Headline", type: "text", required: true },
-    { name: "platform", label: "Distribution Channel", type: "select", options: ["Instagram Reel", "YouTube Shorts", "YouTube Long-form", "LinkedIn"] },
+    { name: "platform", label: "Publish Channel", type: "select", options: ["Instagram Reel", "YouTube Shorts", "YouTube Long-form", "LinkedIn Post"] },
     { name: "scheduledDate", label: "Publish Date", type: "date", required: true },
-    { name: "status", label: "Production Status", type: "select", options: ["Idea", "Script Ready", "Editing Done", "Posted"] },
-    { name: "fileUrl", label: "Asset / Media Link (Drive / Post URL)", type: "url", placeholder: "https://...", required: false }
+    { name: "status", label: "Production State", type: "select", options: ["Idea", "Script Ready", "Editing Done", "Posted"] },
+    { name: "fileUrl", label: "Media / Asset URL (Drive / Reel link)", type: "url", placeholder: "https://...", required: false }
   ],
   team: [
     { name: "fullName", label: "Member Name", type: "text", required: true },
-    { name: "role", label: "Primary Role", type: "select", options: ["Web Developer", "Video Editor", "Motion Designer", "Copywriter", "Growth Strategist"] },
-    { name: "contact", label: "Phone or Email", type: "text", required: true },
-    { name: "status", label: "Availability", type: "select", options: ["Available", "Engaged on Project", "On Leave"] }
+    { name: "role", label: "Primary Skill / Role", type: "select", options: ["Web Developer", "Video Editor", "Motion Designer", "Copywriter", "Growth Strategist"] },
+    { name: "contact", label: "Contact (Phone / Email)", type: "text", required: true },
+    { name: "status", label: "Availability Status", type: "select", options: ["Available", "Engaged on Project", "On Leave"] }
   ]
 };
 
@@ -280,9 +280,9 @@ function openModalForTab(tab) {
     clients: "Client",
     projects: "Project",
     tasks: "Task",
-    recurring: "Recurring Client / Retainer",
+    recurring: "Recurring Retainer / Daily Work",
     payments: "Payment Record",
-    social: "Social Media Post",
+    social: "Social Post",
     team: "Team Member"
   };
 
@@ -293,16 +293,16 @@ function openModalForTab(tab) {
 
   fields.forEach(f => {
     const wrap = document.createElement("div");
-    wrap.innerHTML = `<label class="block text-xs font-semibold text-slate-700 mb-1">${f.label}</label>`;
+    wrap.innerHTML = `<label class="block text-xs font-semibold text-slate-300 mb-1.5">${f.label}</label>`;
 
     if (f.type === "datalist") {
       const listId = `dl_${f.name}_${Date.now()}`;
       const input = document.createElement("input");
       input.setAttribute("list", listId);
       input.name = f.name;
-      input.placeholder = f.placeholder || "Type custom or choose from list...";
+      input.placeholder = f.placeholder || "Type custom or select...";
       if (f.required) input.required = true;
-      input.className = "w-full bg-slate-50 border border-slate-300 text-xs px-3.5 py-2.5 rounded-xl text-slate-800 outline-none krypton-border-focus transition";
+      input.className = "w-full bg-brand-surface border border-slate-700 text-xs px-3.5 py-2.5 rounded-xl text-white outline-none neon-border-glow transition placeholder-slate-500";
       
       const datalist = document.createElement("datalist");
       datalist.id = listId;
@@ -317,7 +317,7 @@ function openModalForTab(tab) {
     else if (f.type === "select") {
       const select = document.createElement("select");
       select.name = f.name;
-      select.className = "w-full bg-slate-50 border border-slate-300 text-xs px-3.5 py-2.5 rounded-xl text-slate-800 outline-none krypton-border-focus transition";
+      select.className = "w-full bg-brand-surface border border-slate-700 text-xs px-3.5 py-2.5 rounded-xl text-white outline-none neon-border-glow transition";
       f.options.forEach(opt => {
         const option = document.createElement("option");
         option.value = opt;
@@ -331,7 +331,7 @@ function openModalForTab(tab) {
       input.name = f.name;
       if (f.required) input.required = true;
       if (f.placeholder) input.placeholder = f.placeholder;
-      input.className = "w-full bg-slate-50 border border-slate-300 text-xs px-3.5 py-2.5 rounded-xl text-slate-800 outline-none krypton-border-focus transition";
+      input.className = "w-full bg-brand-surface border border-slate-700 text-xs px-3.5 py-2.5 rounded-xl text-white outline-none neon-border-glow transition placeholder-slate-500";
       wrap.appendChild(input);
     }
     if (formFieldsContainer) formFieldsContainer.appendChild(wrap);
@@ -366,10 +366,10 @@ if (universalForm) {
     const targetCollection = state.currentTab === "dashboard" ? "clients" : state.currentTab;
 
     try {
-      // 1. Firebase Firestore Save
+      // 1. Save to Firebase
       await addDoc(collection(db, targetCollection), payload);
 
-      // 2. Google Sheets Dual Sync
+      // 2. Dual Sync to Google Sheets
       if (GOOGLE_SHEET_WEBHOOK_URL) {
         fetch(GOOGLE_SHEET_WEBHOOK_URL, {
           method: "POST",
@@ -382,7 +382,7 @@ if (universalForm) {
         }).catch(err => console.warn("Google Sheet sync notice:", err));
       }
 
-      showToast("Synced Successfully", "Data updated in Firebase & Google Sheets.");
+      showToast("Synchronized", "Saved to Cloud Firestore & Google Sheet.");
       universalForm.reset();
       if (entryModal) {
         entryModal.classList.add("hidden");
@@ -395,9 +395,9 @@ if (universalForm) {
 }
 
 window.deleteEntity = async (col, id) => {
-  if (confirm("Delete this entry permanently from Krypton records?")) {
+  if (confirm("Permanently purge this record from Krypton systems?")) {
     await deleteDoc(doc(db, col, id));
-    showToast("Deleted", "Record has been removed.");
+    showToast("Purged", "Record removed from database.");
   }
 };
 
@@ -475,14 +475,14 @@ if (refreshBtn) {
   refreshBtn.addEventListener("click", () => {
     refreshBtn.classList.add("animate-spin");
     initLiveSubscriptions();
-    showToast("Syncing", "Workspace re-synced with Google Cloud.");
+    showToast("Syncing", "Refreshing cloud connections.");
     setTimeout(() => {
       refreshBtn.classList.remove("animate-spin");
     }, 700);
   });
 }
 
-// ================= 11. RENDER ENGINE =================
+// ================= 11. RENDER ENGINE (DARK CYBER THEME) =================
 const container = document.getElementById("tabContentContainer");
 const sectionTitle = document.getElementById("currentSectionTitle");
 const newEntryBtnLabel = document.getElementById("newEntryBtnLabel");
@@ -493,11 +493,11 @@ const titleMap = {
   clients: "Clients Directory",
   projects: "Project Pipelines",
   tasks: "Operational Tasks",
-  recurring: "Recurring Clients & Retainers (Monthly / Daily Tracker)",
   payments: "Payment Transactions",
-  social: "Content Calendar",
-  team: "Agency Roster",
-  reports: "Executive Financial Summary"
+  recurring: "Recurring Clients & Retainers (Monthly / Daily Tracker)",
+  social: "Social Posts & Content Calendar",
+  reports: "Executive Financial Summary",
+  team: "Agency Roster"
 };
 
 const buttonLabelMap = {
@@ -505,10 +505,11 @@ const buttonLabelMap = {
   clients: "Add Client",
   projects: "Add Project",
   tasks: "Add Task",
-  recurring: "Add Retainer / Quota",
   payments: "Add Payment",
-  social: "Add Content",
-  team: "Add Member"
+  recurring: "Add Retainer / Quota",
+  social: "Add Social Post",
+  reports: "Add Record",
+  team: "Add Team Member"
 };
 
 function renderActiveTab() {
@@ -541,9 +542,9 @@ function renderActiveTab() {
 
   if (list.length === 0) {
     container.innerHTML = `
-      <div class="py-16 text-center text-slate-400 text-xs">
-        <i data-lucide="inbox" class="w-8 h-8 mx-auto mb-2 text-slate-300"></i>
-        No active records found in this category.
+      <div class="py-16 text-center text-slate-500 text-xs">
+        <i data-lucide="inbox" class="w-8 h-8 mx-auto mb-2 text-slate-600"></i>
+        No active records logged in this partition.
       </div>
     `;
     if (window.lucide) lucide.createIcons();
@@ -552,58 +553,58 @@ function renderActiveTab() {
 
   const headers = (schemas[tab] || []).map(s => s.label);
   let tableHtml = `
-    <table class="w-full text-left text-xs text-slate-700">
-      <thead class="bg-slate-50 text-[11px] font-bold text-slate-500 border-b border-slate-200 uppercase tracking-wider">
+    <table class="w-full text-left text-xs text-slate-300">
+      <thead class="bg-brand-surface/90 text-[10px] font-mono font-bold text-slate-400 border-b border-brand-border uppercase tracking-wider">
         <tr>
           ${headers.map(h => `<th class="px-5 py-3.5">${h}</th>`).join("")}
           <th class="px-5 py-3.5 text-right">Action</th>
         </tr>
       </thead>
-      <tbody class="divide-y divide-slate-100 font-medium">
+      <tbody class="divide-y divide-brand-border/60 font-medium">
   `;
 
   list.forEach(row => {
-    tableHtml += `<tr class="hover:bg-slate-50/80 transition">`;
+    tableHtml += `<tr class="hover:bg-brand-card/40 transition">`;
     (schemas[tab] || []).forEach(field => {
       let val = row[field.name] || "-";
       
-      // File / Reel / Media URL formatting
+      // File / Reel / Media URL handling
       if (field.name === "fileUrl" || field.name === "workUrl") {
         if (val && val !== "-" && (val.startsWith("http://") || val.startsWith("https://"))) {
           const btnText = field.name === "workUrl" ? "View Reel" : "Open Link";
-          val = `<a href="${val}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center space-x-1 px-2.5 py-1 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-lg font-semibold transition border border-blue-200">
+          val = `<a href="${val}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center space-x-1 px-2.5 py-1 bg-brand-neonMuted text-brand-neon hover:bg-brand-neon/20 rounded-lg font-mono font-semibold transition border border-brand-neon/30">
             <span>${btnText}</span>
             <i data-lucide="external-link" class="w-3 h-3"></i>
           </a>`;
         } else {
-          val = `<span class="text-slate-400 italic">No URL</span>`;
+          val = `<span class="text-slate-500 font-mono text-[11px]">No URL</span>`;
         }
       }
       else if (field.name === "completedCount") {
-        val = `<span class="font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-lg">${val}</span>`;
+        val = `<span class="font-mono font-bold text-brand-neon bg-brand-neonMuted border border-brand-neon/30 px-2 py-0.5 rounded-lg">${val}</span>`;
       }
       else if (field.name === "dailyUpdate") {
-        val = `<span class="text-slate-700 font-medium bg-slate-100 px-2 py-1 rounded-lg block max-w-xs truncate" title="${val}">${val}</span>`;
+        val = `<span class="text-slate-200 font-medium bg-brand-card/80 border border-brand-border px-2.5 py-1 rounded-lg block max-w-xs truncate" title="${val}">${val}</span>`;
       }
       else if (field.name === "budget" || field.name === "amount" || field.name === "monthlyFee") {
-        val = `<span class="font-mono font-bold text-slate-900 bg-krypton-tint border border-krypton-border px-2 py-0.5 rounded-lg">₹${Number(val).toLocaleString()}</span>`;
+        val = `<span class="font-mono font-bold text-white bg-brand-surface border border-slate-700 px-2 py-0.5 rounded-lg">₹${Number(val).toLocaleString()}</span>`;
       } 
       else if (field.name === "status" || field.name === "subscriptionStatus" || field.name === "priority") {
-        let badgeColor = "bg-slate-100 text-slate-700 border-slate-200";
+        let badgeColor = "bg-slate-800 text-slate-300 border-slate-700";
         if (val === "Active" || val === "Active Client" || val === "Completed" || val === "Done" || val === "Posted") {
-          badgeColor = "bg-emerald-50 text-emerald-800 font-bold border-emerald-200";
+          badgeColor = "bg-emerald-950/70 text-emerald-400 font-bold border-emerald-800";
         } else if (val === "In Progress" || val === "High" || val === "Urgent") {
-          badgeColor = "bg-amber-50 text-amber-800 border-amber-200 font-bold";
+          badgeColor = "bg-amber-950/70 text-amber-300 border-amber-800 font-bold";
         } else if (val === "Cancelled" || val === "On Leave") {
-          badgeColor = "bg-rose-50 text-rose-700 border-rose-200 font-bold";
+          badgeColor = "bg-rose-950/70 text-rose-300 border-rose-800 font-bold";
         }
-        val = `<span class="px-2.5 py-0.5 rounded-full text-[11px] border ${badgeColor}">${val}</span>`;
+        val = `<span class="px-2.5 py-0.5 rounded-full text-[10px] font-mono border ${badgeColor}">${val}</span>`;
       }
-      tableHtml += `<td class="px-5 py-3.5 text-slate-800">${val}</td>`;
+      tableHtml += `<td class="px-5 py-3.5 text-slate-200">${val}</td>`;
     });
     tableHtml += `
       <td class="px-5 py-3.5 text-right">
-        <button onclick="deleteEntity('${tab}', '${row.id}')" class="text-rose-600 hover:text-rose-800 font-semibold p-1 hover:bg-rose-50 rounded-lg transition">Remove</button>
+        <button onclick="deleteEntity('${tab}', '${row.id}')" class="text-rose-400 hover:text-rose-300 font-semibold p-1 hover:bg-rose-950/40 rounded-lg transition font-mono text-[11px]">Remove</button>
       </td>
     </tr>`;
   });
@@ -623,57 +624,64 @@ function renderDashboardView() {
 
   container.innerHTML = `
     <div class="p-6 space-y-6">
-      <div class="bg-gradient-to-r from-slate-900 to-slate-800 text-white rounded-2xl p-6 relative overflow-hidden flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+      <!-- Glow Hero Banner -->
+      <div class="glass-card rounded-2xl p-6 relative overflow-hidden flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border border-brand-neon/30">
         <div class="space-y-1 z-10">
-          <span class="inline-block bg-krypton-neon/20 border border-krypton-neon/40 text-krypton-neon px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider">Agency Command Center</span>
-          <h3 class="text-xl font-black text-white">Welcome back to Krypton Operations</h3>
-          <p class="text-xs text-slate-300">Synchronized with Google Cloud & Google Sheets.</p>
+          <span class="inline-flex items-center gap-1.5 bg-brand-neonMuted border border-brand-neon/30 text-brand-neon px-2.5 py-0.5 rounded-full text-[10px] font-mono font-extrabold uppercase tracking-wider">
+            <span class="w-1.5 h-1.5 rounded-full bg-brand-neon animate-pulse"></span> Krypton Neural Engine
+          </span>
+          <h3 class="text-xl font-extrabold text-white">Central Operations & Agency Telemetry</h3>
+          <p class="text-xs text-brand-textMuted">Realtime synchronization enabled across Firestore and Google Sheets.</p>
         </div>
-        <button onclick="document.querySelector('[data-tab=recurring]').click()" class="z-10 px-4 py-2.5 rounded-xl bg-krypton-neon text-slate-950 font-bold text-xs shadow krypton-glow active:scale-95 transition">
-          View Daily Retainers Tracker
+        <button onclick="document.querySelector('[data-tab=recurring]').click()" class="z-10 px-4 py-2.5 rounded-xl bg-brand-neon hover:bg-brand-neonHover text-brand-black font-extrabold text-xs shadow-lg neon-glow active:scale-95 transition">
+          Open Retainers & Work Tracker
         </button>
-        <div class="absolute -right-10 -bottom-10 w-44 h-44 bg-krypton-neon/15 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="absolute -right-10 -bottom-10 w-44 h-44 bg-brand-neon/15 rounded-full blur-3xl pointer-events-none"></div>
       </div>
 
+      <!-- Activity Grid -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div class="border border-slate-200 rounded-2xl p-5 bg-white shadow-sm">
+        
+        <!-- Active Projects -->
+        <div class="glass-card rounded-2xl p-5 border border-brand-border">
           <div class="flex items-center justify-between mb-4">
-            <h4 class="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
-              <i data-lucide="folder-kanban" class="w-4 h-4 text-emerald-600"></i> Active Projects
+            <h4 class="text-xs font-mono font-bold text-white uppercase tracking-wider flex items-center gap-2">
+              <i data-lucide="folder-kanban" class="w-4 h-4 text-brand-neon"></i> Active Projects
             </h4>
-            <span class="text-[11px] text-slate-400">${state.data.projects.length} Total</span>
+            <span class="text-[11px] font-mono text-slate-400">${state.data.projects.length} Total</span>
           </div>
           <div class="space-y-2.5">
-            ${recentProjects.length === 0 ? '<p class="text-xs text-slate-400 py-4 text-center">No projects added yet.</p>' : recentProjects.map(p => `
-              <div class="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-100">
+            ${recentProjects.length === 0 ? '<p class="text-xs text-slate-500 py-4 text-center font-mono">No projects in pipeline.</p>' : recentProjects.map(p => `
+              <div class="flex items-center justify-between p-3 rounded-xl bg-brand-card/60 border border-brand-border">
                 <div>
-                  <p class="text-xs font-bold text-slate-800">${p.title || "Untitled"}</p>
+                  <p class="text-xs font-bold text-white">${p.title || "Untitled"}</p>
                   <p class="text-[11px] text-slate-400">Client: ${p.client || "-"}</p>
                 </div>
                 <div class="text-right">
-                  <span class="text-xs font-mono font-bold text-slate-900">₹${Number(p.budget || 0).toLocaleString()}</span>
-                  <span class="block text-[10px] text-slate-500 font-semibold">${p.status || "Planning"}</span>
+                  <span class="text-xs font-mono font-bold text-brand-neon">₹${Number(p.budget || 0).toLocaleString()}</span>
+                  <span class="block text-[10px] text-slate-400 font-mono">${p.status || "Planning"}</span>
                 </div>
               </div>
             `).join('')}
           </div>
         </div>
 
-        <div class="border border-slate-200 rounded-2xl p-5 bg-white shadow-sm">
+        <!-- Priority Tasks -->
+        <div class="glass-card rounded-2xl p-5 border border-brand-border">
           <div class="flex items-center justify-between mb-4">
-            <h4 class="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
-              <i data-lucide="alert-circle" class="w-4 h-4 text-amber-500"></i> Priority Tasks
+            <h4 class="text-xs font-mono font-bold text-white uppercase tracking-wider flex items-center gap-2">
+              <i data-lucide="alert-circle" class="w-4 h-4 text-amber-400"></i> Priority Tasks
             </h4>
-            <span class="text-[11px] text-slate-400">${state.data.tasks.length} Total</span>
+            <span class="text-[11px] font-mono text-slate-400">${state.data.tasks.length} Total</span>
           </div>
           <div class="space-y-2.5">
-            ${urgentTasks.length === 0 ? '<p class="text-xs text-slate-400 py-4 text-center">No urgent tasks pending.</p>' : urgentTasks.map(t => `
-              <div class="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-100">
+            ${urgentTasks.length === 0 ? '<p class="text-xs text-slate-500 py-4 text-center font-mono">No urgent tasks pending.</p>' : urgentTasks.map(t => `
+              <div class="flex items-center justify-between p-3 rounded-xl bg-brand-card/60 border border-brand-border">
                 <div>
-                  <p class="text-xs font-bold text-slate-800">${t.task || "Task"}</p>
-                  <p class="text-[11px] text-slate-400">Assigned: ${t.assignee || "-"}</p>
+                  <p class="text-xs font-bold text-white">${t.task || "Task"}</p>
+                  <p class="text-[11px] text-slate-400">Owner: ${t.assignee || "-"}</p>
                 </div>
-                <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200">${t.priority || "High"}</span>
+                <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-amber-950/80 text-amber-300 border border-amber-800">${t.priority || "High"}</span>
               </div>
             `).join('')}
           </div>
@@ -696,32 +704,32 @@ function renderReportsView() {
 
   container.innerHTML = `
     <div class="p-6 grid grid-cols-1 md:grid-cols-3 gap-6">
-      <div class="bg-krypton-tint border-2 border-krypton-neon p-6 rounded-2xl shadow-sm">
-        <span class="text-[11px] font-extrabold text-krypton-dark uppercase tracking-wider">Active Monthly Retainers (MRR)</span>
-        <h4 class="text-3xl font-black text-slate-950 mt-2 font-mono">₹${activeMRR.toLocaleString()}/mo</h4>
-        <p class="text-xs text-slate-600 mt-1 font-medium">Predictable monthly revenue run-rate</p>
+      <div class="glass-card border border-brand-neon/50 p-6 rounded-2xl shadow-xl">
+        <span class="text-[10px] font-mono font-extrabold text-brand-neon uppercase tracking-wider">Active Monthly Retainers (MRR)</span>
+        <h4 class="text-3xl font-black text-brand-neon mt-2 font-mono">₹${activeMRR.toLocaleString()}/mo</h4>
+        <p class="text-xs text-slate-400 mt-1 font-mono">Predictable agency monthly run-rate</p>
       </div>
-      <div class="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm">
-        <span class="text-[11px] text-slate-500 font-bold uppercase tracking-wider">Total Received Funds</span>
-        <h4 class="text-3xl font-black text-slate-900 mt-2 font-mono">₹${rev.toLocaleString()}</h4>
-        <p class="text-xs text-slate-500 mt-1 font-medium">Recorded payment income</p>
+      <div class="glass-card border border-brand-border p-6 rounded-2xl shadow-xl">
+        <span class="text-[10px] font-mono text-slate-400 font-bold uppercase tracking-wider">Total Received Funds</span>
+        <h4 class="text-3xl font-black text-white mt-2 font-mono">₹${rev.toLocaleString()}</h4>
+        <p class="text-xs text-slate-400 mt-1 font-mono">Collected payments recorded</p>
       </div>
-      <div class="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm">
-        <span class="text-[11px] text-slate-500 font-bold uppercase tracking-wider">Project Pipeline Valuation</span>
-        <h4 class="text-3xl font-black text-slate-900 mt-2 font-mono">₹${totalPipeline.toLocaleString()}</h4>
-        <p class="text-xs text-slate-500 mt-1 font-medium">Accumulated project scope volume</p>
+      <div class="glass-card border border-brand-border p-6 rounded-2xl shadow-xl">
+        <span class="text-[10px] font-mono text-slate-400 font-bold uppercase tracking-wider">Pipeline Valuation</span>
+        <h4 class="text-3xl font-black text-white mt-2 font-mono">₹${totalPipeline.toLocaleString()}</h4>
+        <p class="text-xs text-slate-400 mt-1 font-mono">Total committed scope value</p>
       </div>
     </div>
   `;
 }
 
-// ================= 14. TAB SWITCHING =================
+// ================= 14. TAB SWITCHING ENGINE =================
 document.querySelectorAll(".tab-btn").forEach(btn => {
   btn.addEventListener("click", () => {
     document.querySelectorAll(".tab-btn").forEach(b => {
-      b.className = "tab-btn w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition";
+      b.className = "tab-btn w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold text-slate-400 hover:bg-brand-card hover:text-white transition";
     });
-    btn.className = "tab-btn w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-sm font-bold bg-krypton-neon text-slate-950 krypton-glow transition";
+    btn.className = "tab-btn w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-xs font-bold bg-brand-neon text-brand-black neon-glow transition";
     
     state.currentTab = btn.getAttribute("data-tab");
     if (openModalBtn) openModalBtn.style.display = state.currentTab === "reports" ? "none" : "flex";
